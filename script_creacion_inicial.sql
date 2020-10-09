@@ -1,11 +1,13 @@
 USE [GD2C2020]
 GO
 
-CREATE SCHEMA [FFAN];  
+IF NOT EXISTS ( SELECT  *
+                FROM    sys.schemas
+                WHERE   name = N'FFAN' )
+    EXEC('CREATE SCHEMA [FFAN]');
 GO
 
-DROP TABLE IF EXISTS  [FFAN].[TIPO_CAJA] 
-GO
+
 
 CREATE TABLE [FFAN].[TIPO_CAJA] 
 (
