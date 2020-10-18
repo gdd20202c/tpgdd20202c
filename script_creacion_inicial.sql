@@ -265,10 +265,20 @@ group by
 	GD_ESQUEMA.Maestra.TIPO_AUTO_CODIGO,
 	GD_ESQUEMA.Maestra.TIPO_AUTO_DESC
 GO
-/*
-insert into FFAN.TIPO_MOTOR 
-SELECT *  FROM gd_esquema.Maestra M  /* REVISAR QUÉ DESCRIPCION LE PONEMOS A TIPO DE MOTOR */
-*/
+
+insert
+	into
+	FFAN.TIPO_MOTOR
+SELECT
+	distinct tipo_motor_codigo,
+	'Descripcion_' + convert(varchar(4),
+	tipo_motor_codigo)
+FROM
+	gd_esquema.Maestra
+where
+	tipo_motor_codigo is not null
+go
+
 INSERT
 	INTO
 	FFAN.MODELO
@@ -310,5 +320,41 @@ WHERE
 	GD_ESQUEMA.MAESTRA.FABRICANTE_NOMBRE IS NOT NULL
 GO
 
-SELECT * FROM FFAN.FABRICANTE f 
+
+insert
+	into
+	ffan.AUTOMOVIL (AUTO_PATENTE, AUTO_FECHA_ALTA, auto_cant_kms, auto_nro_chasis, auto_nro_motor, auto_modelo_codigo, auto_tipo_caja_codigo, auto_tipo_motor_codigo, auto_tipo_transmision, AUTO_TIPO_CODIGO, AUTO_FABRICANTE_CODIGO )
+select
+	m.AUTO_PATENTE,
+	m.AUTO_FECHA_ALTA,
+	m.AUTO_CANT_KMS,
+	m.AUTO_NRO_CHASIS,
+	m.AUTO_NRO_MOTOR,
+	m.MODELO_CODIGO,
+	m.tipo_caja_codigo,
+	m.TIPO_MOTOR_CODIGO,
+	m.TIPO_TRANSMISION_CODIGO,
+	m.TIPO_AUTO_CODIGO,
+	f.FABRICANTE_CODIGO
+from
+	gd_esquema.Maestra m,
+	ffan.fabricante f
+where
+	m.FABRICANTE_NOMBRE = f.FABRICANTE_NOMBRE
+	and m.AUTO_PATENTE is not null
+group by
+	m.AUTO_PATENTE,
+	m.AUTO_FECHA_ALTA,
+	m.AUTO_CANT_KMS,
+	m.AUTO_NRO_CHASIS,
+	m.AUTO_NRO_MOTOR,
+	m.MODELO_CODIGO,
+	m.tipo_caja_codigo,
+	m.TIPO_MOTOR_CODIGO,
+	m.TIPO_TRANSMISION_CODIGO,
+	m.TIPO_AUTO_CODIGO,
+	f.FABRICANTE_CODIGO
+GO
+
+
 
