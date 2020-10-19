@@ -244,7 +244,7 @@ FEDE: SUCURSAL + CLIENTE
 --SACAR EL IDENTYTY de la tabla COMPRA
 ----------------------------------------------------------------------
 /*
-insert into ffan.sucursal
+insert into ffan.sucursal   ---REVISAR SI NO HAY QUE SACAR DE OTRO LADO TAMBIEN
 select distinct 
 SUCURSAL_DIRECCION,
 SUCURSAL_MAIL,
@@ -254,12 +254,22 @@ from gd_esquema.Maestra
 where SUCURSAL_DIRECCION is not null
 go
 
-insert into ffan.cliente
+insert into ffan.cliente   ---REVISAR SI NO HAY QUE SACAR DE OTRO LADO TAMBIEN
 select distinct CLIENTE_APELLIDO,cliente_nombre,CLIENTE_DIRECCION,cliente_dni,CLIENTE_FECHA_NAC,CLIENTE_MAIL
 from gd_esquema.Maestra
 where cliente_dni is not null
 go
 */
+
+--Migracion Autoparte
+insert into FFAN.AUTOPARTE 
+select distinct AUTO_PARTE_CODIGO,
+AUTO_PARTE_DESCRIPCION,
+(select fab.fabricante_codigo from FFAN.FABRICANTE fab where fab.FABRICANTE_NOMBRE = t1.FABRICANTE_NOMBRE),
+(select model.MODELO_CODIGO from FFAN.MODELO model where MODELO_NOMBRE = t1.MODELO_NOMBRE and model.MODELO_POTENCIA = t1.MODELO_POTENCIA)
+from gd_esquema.Maestra t1
+where AUTO_PARTE_CODIGO is not null
+GO
 
 --Migracion Compra 
 insert into FFAN.COMPRA
