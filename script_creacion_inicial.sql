@@ -242,14 +242,19 @@ FEDE: SUCURSAL + CLIENTE
 -- Automovil
 
 --Migracion Compra 
+insert into FFAN.COMPRA
 select t1.COMPRA_NRO,
 t1.COMPRA_FECHA,
-(select c.cliente_id from FFAN.Cliente c where c.CLIENTE_DNI = t1.CLIENTE_DNI and c.cliente_apellido= t1.CLIENTE_APELLIDO) idcliente,
-sum(t1.compra_precio * isnull(compra_cant,1)) preciototal
+(select c.cliente_id from FFAN.Cliente c where c.CLIENTE_DNI = t1.CLIENTE_DNI and c.cliente_apellido= t1.CLIENTE_APELLIDO) compra_cliente,
+sum(t1.compra_precio * isnull(compra_cant,1)) compra_precio_total,
+(select s.SUCURSAL_ID from FFAN.SUCURSAL s where s.SUCURSAL_DIRECCION = t1.SUCURSAL_DIRECCION and s.SUCURSAL_CIUDAD= t1.SUCURSAL_CIUDAD) compra_sucursal_id,
+SUCURSAL_DIRECCION compra_sucursal_direccion,
+SUCURSAL_CIUDAD compra_sucursal_direccion
 from gd_esquema.Maestra t1
 where t1.compra_nro is not null
 and t1.FACTURA_NRO is null
-group by t1.COMPRA_NRO,t1.COMPRA_FECHA,t1.CLIENTE_DNI,t1.CLIENTE_APELLIDO
+group by t1.COMPRA_NRO,t1.COMPRA_FECHA,t1.CLIENTE_DNI,t1.CLIENTE_APELLIDO,t1.SUCURSAL_DIRECCION,t1.SUCURSAL_CIUDAD
+GO
 
 
 --Migracion item_compra_autoparte 
