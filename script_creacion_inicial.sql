@@ -240,15 +240,20 @@ FEDE: SUCURSAL + CLIENTE
 --hay que llenar primero las siguinetes tablas
 -- Cliente
 -- Automovil
+----------------------------------------------------------------------
+--SACAR EL IDENTYTY de la tabla COMPRA
+----------------------------------------------------------------------
 /*
 insert into ffan.sucursal
-select distinct sucursal_mail,
+select distinct 
 SUCURSAL_DIRECCION,
+SUCURSAL_MAIL,
 sucursal_telefono,
 sucursal_ciudad
 from gd_esquema.Maestra
 where SUCURSAL_DIRECCION is not null
 go
+
 insert into ffan.cliente
 select distinct CLIENTE_APELLIDO,cliente_nombre,CLIENTE_DIRECCION,cliente_dni,CLIENTE_FECHA_NAC,CLIENTE_MAIL
 from gd_esquema.Maestra
@@ -296,7 +301,3 @@ and t1.AUTO_NRO_MOTOR is not null
 and t1.FACTURA_NRO is null
 and t1.auto_nro_chasis is not null
 GO
-
-----------------------
-
-
