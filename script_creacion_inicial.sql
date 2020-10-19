@@ -235,3 +235,48 @@ FACU: COMPRA + ITEM COMPRA AUTOPARTE E ITEM COMPRA AUTOMOVIL + ORDENAR SCRIPT
 FEDE: SUCURSAL + CLIENTE 
 
 */
+
+
+--hay que llenar primero las siguinetes tablas
+-- Cliente
+-- Automovil
+
+--Migracion Compra 
+select t1.COMPRA_NRO,
+t1.COMPRA_FECHA,
+(select c.cliente_id from FFAN.Cliente c where c.CLIENTE_DNI = t1.CLIENTE_DNI and c.cliente_apellido= t1.CLIENTE_APELLIDO) idcliente,
+sum(t1.compra_precio * isnull(compra_cant,1)) preciototal
+from gd_esquema.Maestra t1
+where t1.compra_nro is not null
+and t1.FACTURA_NRO is null
+group by t1.COMPRA_NRO,t1.COMPRA_FECHA,t1.CLIENTE_DNI,t1.CLIENTE_APELLIDO
+
+
+--Migracion item_compra_autoparte 
+insert into FFAN.ITEM_COMPRA_AUTOPARTE
+select COMPRA_NRO,
+auto_parte_codigo,
+compra_precio,
+sum(compra_cant)
+from gd_esquema.Maestra
+where compra_nro is not null
+and auto_parte_codigo is not null
+and FACTURA_NRO is null
+group by COMPRA_NRO,AUTO_PARTE_CODIGO,COMPRA_PRECIO
+GO
+
+--Migracion item_compra_automovil
+insert into FFAN.ITEM_COMPRA_AUTOMOVIL 
+select t1.COMPRA_NRO,
+(select aut.auto_id from FFAN.AUTOMOVIL aut where aut.auto_patente = t1.auto_patente and aut.AUTO_NRO_CHASIS = t1.auto_nro_chasis) autoid,
+compra_precio
+from gd_esquema.Maestra t1
+where t1.compra_nro is not null
+and t1.AUTO_NRO_MOTOR is not null
+and t1.FACTURA_NRO is null
+and t1.auto_nro_chasis is not null
+GO
+
+----------------------
+
+
