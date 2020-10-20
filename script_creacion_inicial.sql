@@ -258,6 +258,10 @@ insert into ffan.cliente   ---REVISAR SI NO HAY QUE SACAR DE OTRO LADO TAMBIEN
 select distinct CLIENTE_APELLIDO,cliente_nombre,CLIENTE_DIRECCION,cliente_dni,CLIENTE_FECHA_NAC,CLIENTE_MAIL
 from gd_esquema.Maestra
 where cliente_dni is not null
+union
+select distinct FAC_CLIENTE_APELLIDO,FAC_CLIENTE_NOMBRE,FAC_CLIENTE_DIRECCION,FAC_CLIENTE_DNI,FAC_CLIENTE_FECHA_NAC,FAC_CLIENTE_MAIL
+from gd_esquema.Maestra
+where FAC_CLIENTE_DNI is not null
 go
 */
 
