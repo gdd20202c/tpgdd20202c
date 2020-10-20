@@ -110,7 +110,7 @@ GO
 
 CREATE TABLE [FFAN].[FABRICANTE] 
 (
-    FABRICANTE_CODIGO DECIMAL(18,0) NOT NULL PRIMARY KEY,  
+    FABRICANTE_CODIGO DECIMAL(18,0) NOT NULL IDENTITY(1,1) PRIMARY KEY,  
     FABRICANTE_NOMBRE NVARCHAR(255)
 )
 GO
@@ -164,7 +164,7 @@ GO
 
 CREATE TABLE [FFAN].[COMPRA]
 (
-    COMPRA_NRO DECIMAL(18,0) NOT NULL IDENTITY(1,1) PRIMARY KEY ,
+    COMPRA_NRO DECIMAL(18,0) NOT NULL PRIMARY KEY ,
     COMPRA_FECHA DATETIME2(3),
     COMPRA_CLIENTE DECIMAL(18,0) FOREIGN KEY REFERENCES FFAN.CLIENTE(CLIENTE_ID),
     COMPRA_PRECIO_TOTAL DECIMAL(18,2),
@@ -252,3 +252,83 @@ FACU: COMPRA + ITEM COMPRA AUTOPARTE E ITEM COMPRA AUTOMOVIL + ORDENAR SCRIPT
 FEDE: SUCURSAL + CLIENTE 
 
 */
+
+
+--hay que llenar primero las siguinetes tablas
+-- Cliente
+-- Automovil
+----------------------------------------------------------------------
+--SACAR EL IDENTYTY de la tabla COMPRA
+----------------------------------------------------------------------
+/*
+insert into ffan.sucursal   ---REVISAR SI NO HAY QUE SACAR DE OTRO LADO TAMBIEN
+select distinct 
+SUCURSAL_DIRECCION,
+SUCURSAL_MAIL,
+sucursal_telefono,
+sucursal_ciudad
+from gd_esquema.Maestra
+where SUCURSAL_DIRECCION is not null
+go
+
+insert into ffan.cliente   ---REVISAR SI NO HAY QUE SACAR DE OTRO LADO TAMBIEN
+select distinct CLIENTE_APELLIDO,cliente_nombre,CLIENTE_DIRECCION,cliente_dni,CLIENTE_FECHA_NAC,CLIENTE_MAIL
+from gd_esquema.Maestra
+where cliente_dni is not null
+union
+select distinct FAC_CLIENTE_APELLIDO,FAC_CLIENTE_NOMBRE,FAC_CLIENTE_DIRECCION,FAC_CLIENTE_DNI,FAC_CLIENTE_FECHA_NAC,FAC_CLIENTE_MAIL
+from gd_esquema.Maestra
+where FAC_CLIENTE_DNI is not null
+go
+*/
+
+--Migracion Autoparte
+insert into FFAN.AUTOPARTE 
+select distinct AUTO_PARTE_CODIGO,
+AUTO_PARTE_DESCRIPCION,
+(select fab.fabricante_codigo from FFAN.FABRICANTE fab where fab.FABRICANTE_NOMBRE = t1.FABRICANTE_NOMBRE),
+(select model.MODELO_CODIGO from FFAN.MODELO model where MODELO_NOMBRE = t1.MODELO_NOMBRE and model.MODELO_POTENCIA = t1.MODELO_POTENCIA)
+from gd_esquema.Maestra t1
+where AUTO_PARTE_CODIGO is not null
+GO
+
+--Migracion Compra 
+insert into FFAN.COMPRA
+select t1.COMPRA_NRO,
+t1.COMPRA_FECHA,
+(select c.cliente_id from FFAN.Cliente c where c.CLIENTE_DNI = t1.CLIENTE_DNI and c.cliente_apellido= t1.CLIENTE_APELLIDO) compra_cliente,
+sum(t1.compra_precio * isnull(compra_cant,1)) compra_precio_total,
+(select s.SUCURSAL_ID from FFAN.SUCURSAL s where s.SUCURSAL_DIRECCION = t1.SUCURSAL_DIRECCION and s.SUCURSAL_CIUDAD= t1.SUCURSAL_CIUDAD) compra_sucursal_id,
+SUCURSAL_DIRECCION compra_sucursal_direccion,
+SUCURSAL_CIUDAD compra_sucursal_direccion
+from gd_esquema.Maestra t1
+where t1.compra_nro is not null
+and t1.FACTURA_NRO is null
+group by t1.COMPRA_NRO,t1.COMPRA_FECHA,t1.CLIENTE_DNI,t1.CLIENTE_APELLIDO,t1.SUCURSAL_DIRECCION,t1.SUCURSAL_CIUDAD
+GO
+
+
+--Migracion item_compra_autoparte 
+insert into FFAN.ITEM_COMPRA_AUTOPARTE
+select COMPRA_NRO,
+auto_parte_codigo,
+compra_precio,
+sum(compra_cant)
+from gd_esquema.Maestra
+where compra_nro is not null
+and auto_parte_codigo is not null
+and FACTURA_NRO is null
+group by COMPRA_NRO,AUTO_PARTE_CODIGO,COMPRA_PRECIO
+GO
+
+--Migracion item_compra_automovil
+insert into FFAN.ITEM_COMPRA_AUTOMOVIL 
+select t1.COMPRA_NRO,
+(select aut.auto_id from FFAN.AUTOMOVIL aut where aut.auto_patente = t1.auto_patente and aut.AUTO_NRO_CHASIS = t1.auto_nro_chasis) autoid,
+compra_precio
+from gd_esquema.Maestra t1
+where t1.compra_nro is not null
+and t1.AUTO_NRO_MOTOR is not null
+and t1.FACTURA_NRO is null
+and t1.auto_nro_chasis is not null
+GO
