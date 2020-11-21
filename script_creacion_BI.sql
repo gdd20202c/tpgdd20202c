@@ -177,3 +177,34 @@ GO
 		ventas_importe_autopart decimal(18,2) NOT NULL
 	)
 GO
+
+/* 
+   FEDE
+	CREATE TABLE [FFAN].[BI_Sucursal](
+	CREATE TABLE [FFAN].[BI_Modelo] (
+	CREATE TABLE [FFAN].[BI_Fabricante] (
+	CREATE TABLE [FFAN].[BI_TipoCaja] (
+
+FACU
+	CREATE TABLE [FFAN].[BI_TipoAutomovil] (
+	CREATE TABLE [FFAN].[BI_RubroAutoparte] (
+    CREATE TABLE [FFAN].[BI_Autoparte] (
+
+NACHO
+	CREATE TABLE [FFAN].[BI_Potencia] (
+	CREATE TABLE [FFAN].[BI_Tiempo] (
+	CREATE TABLE [FFAN].[BI_TipoTransmision] (
+
+ALEXIS
+	CREATE TABLE [FFAN].[BI_TipoMotor] (
+	CREATE TABLE [FFAN].[BI_CantidadCambios] (
+	CREATE TABLE [FFAN].[BI_RangoEtario] (
+	CREATE TABLE [FFAN].[BI_Cliente] (
+	
+	
+DISCUTIMOS MEJOR OPCION EL LUNES
+	CREATE TABLE [FFAN].[BI_Hechos_Compras] (
+	CREATE TABLE [FFAN].[BI_Hechos_Ventas] (
+
+
+*/
