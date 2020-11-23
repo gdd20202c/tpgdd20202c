@@ -280,9 +280,6 @@ go
 
 -- NACHO
 
--- 	CREATE TABLE [FFAN].[BI_Tiempo] (
-
-
 insert
 	into
 	FFAN.BI_TipoTransmision
@@ -300,4 +297,23 @@ insert into ffan.BI_Potencia (potencia_descripcion ) values ('151-300cv')
 go
 insert into ffan.BI_Potencia (potencia_descripcion ) values ('> 300cv')
 go
---nacho
+
+DECLARE @MES INT 
+DECLARE @ANIO INT
+SET @MES=1
+SET @ANIO=18
+WHILE ( @ANIO <= 20)
+BEGIN
+	IF @MES <=12
+		BEGIN
+			insert into ffan.BI_Tiempo (tiempo_mes,tiempo_anio) values (@MES, @ANIO)
+			SET @MES  = @MES  + 1;
+	END
+	ELSE
+		BEGIN
+			SET @MES=1
+			SET @ANIO=@ANIO+1
+		END
+END
+
+--NACHO
