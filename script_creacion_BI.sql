@@ -15,8 +15,6 @@ GO
 GO
 	IF OBJECT_ID('FFAN.BI_TipoAutomovil', 'U') IS NOT NULL DROP TABLE [FFAN].[BI_TipoAutomovil]
 GO
-	IF OBJECT_ID('FFAN.BI_Autoparte', 'U') IS NOT NULL DROP TABLE [FFAN].[BI_Autoparte];
-GO
 	IF OBJECT_ID('FFAN.BI_RubroAutoparte', 'U') IS NOT NULL DROP TABLE [FFAN].[BI_RubroAutoparte]
 GO
 	IF OBJECT_ID('FFAN.BI_Potencia', 'U') IS NOT NULL DROP TABLE [FFAN].[BI_Potencia]
@@ -85,13 +83,6 @@ GO
 GO
 
 
-	CREATE TABLE [FFAN].[BI_Autoparte] (
-		autoparte_id DECIMAL(18, 0) NOT NULL PRIMARY KEY,
-		autoparte_descripcion nvarchar(255),
-		autoparte_rubro DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_RubroAutoparte(rubroautoparte_id)
-	)
-GO
-
 	CREATE TABLE [FFAN].[BI_Potencia] (
 		potencia_id DECIMAL(2, 0) NOT NULL IDENTITY(1, 1) PRIMARY KEY,
 		potencia_descripcion NVARCHAR(255)
@@ -145,11 +136,11 @@ GO
 		compras_idfabricante DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Fabricante(fabricante_id),
 		compras_idtipocaja DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoCaja(tipocaja_id),
 		compras_idtipoautomovil DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoAutomovil(tipoautomovil_id),
-		compras_idautoparte DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Autoparte(autoparte_id),
+		compras_idrubroautoparte DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_RubroAutoparte(rubroautoparte_id),
 		compras_idpotencia DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_Potencia(potencia_id),
 		compras_idtipotransmision DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoTransmision(tipotransmision_id),
 		compras_idtipomotor DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoMotor(tipomotor_id),
-		compras_idCANTIDAD_CAMBIOS DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_CANTIDAD_CAMBIOS(CANTIDAD_CAMBIOS_id),
+		compras_idCANTIDAD_CAMBIOS DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_CantidadCambios(CANTIDADCAMBIOS_id),
 		compras_unidades_automov decimal(18,0) NOT NULL,
 		compras_importe_automov decimal(18,2) NOT NULL,
 		compras_unidades_autopart decimal(18,0) NOT NULL,
@@ -166,11 +157,11 @@ GO
 		ventas_idfabricante DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Fabricante(fabricante_id),
 		ventas_idtipocaja DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoCaja(tipocaja_id),
 		ventas_idtipoautomovil DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoAutomovil(tipoautomovil_id),
-		ventas_idautoparte DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Autoparte(autoparte_id),
+		ventas_idrubroautoparte DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_RubroAutoparte(rubroautoparte_id),
 		ventas_idpotencia DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_Potencia(potencia_id),
 		ventas_idtipotransmision DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoTransmision(tipotransmision_id),
 		ventas_idtipomotor DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoMotor(tipomotor_id),
-		ventas_idCANTIDAD_CAMBIOS DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_CANTIDAD_CAMBIOS(CANTIDAD_CAMBIOS_id),
+		ventas_idCANTIDAD_CAMBIOS DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_CantidadCambios(CANTIDADCAMBIOS_id),
 		ventas_unidades_automov decimal(18,0) NOT NULL,
 		ventas_importe_automov decimal(18,2) NOT NULL,
 		ventas_unidades_autopart decimal(18,0) NOT NULL,
@@ -220,15 +211,7 @@ FROM
 	FFAN.TIPO_AUTO
 GO
 
-/*SE PONE NULL EN RUBRO HAST AQUE ENTANDAMOS A QUE SE REFIERE EL RUBRO */
-INSERT INTO
-	FFAN.BI_Autoparte
-SELECT
-	AUTOPARTE_CODIGO,
-	AUTOPARTE_DESCRIPCION,
-	null
-FROM
-	FFAN.AUTOPARTE
+INSERT INTO FFAN.BI_RubroAutoparte values (0,null)
 GO
 
 /* Inserts Alexis */
