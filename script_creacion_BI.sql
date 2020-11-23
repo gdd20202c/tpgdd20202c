@@ -277,3 +277,27 @@ go
 	
 /* Fin inserción alexis */ 
 	
+
+-- NACHO
+
+-- 	CREATE TABLE [FFAN].[BI_Tiempo] (
+
+
+insert
+	into
+	FFAN.BI_TipoTransmision
+select
+	tm.TIPO_TRANSMISION_CODIGO,
+	tm.TIPO_TRANSMISION_DESC
+from
+	ffan.TIPO_TRANSMISION tt
+GO
+
+
+insert into ffan.BI_Potencia (potencia_descripcion ) values ('50-150cv')
+go
+insert into ffan.BI_Potencia (potencia_descripcion ) values ('151-300cv')
+go
+insert into ffan.BI_Potencia (potencia_descripcion ) values ('> 300cv')
+go
+--nacho
