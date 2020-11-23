@@ -46,7 +46,7 @@ GO
 GO
 
 	CREATE TABLE [FFAN].[BI_Sucursal](
-		sucursal_id DECIMAL(18, 0) NOT NULL IDENTITY(1, 1) PRIMARY KEY,
+		sucursal_id DECIMAL(18, 0) NOT NULL PRIMARY KEY,
 		sucursal_direccion NVARCHAR(255),
 		sucursal_mail NVARCHAR(255),
 		sucursal_telefono DECIMAL(18, 0),
@@ -106,20 +106,20 @@ GO
 GO
 
 	CREATE TABLE [FFAN].[BI_TipoTransmision] (
-		tipotransmision_id DECIMAL(18, 0) NOT NULL IDENTITY(1, 1) PRIMARY KEY,
+		tipotransmision_id DECIMAL(18, 0) NOT NULL PRIMARY KEY,
 		tipotransmision_descripcion NVARCHAR(255)
 	)
 GO
 
 	CREATE TABLE [FFAN].[BI_TipoMotor] (
-		tipomotor_id DECIMAL(18, 0) NOT NULL IDENTITY(1, 1) PRIMARY KEY,
+		tipomotor_id DECIMAL(18, 0) NOT NULL PRIMARY KEY,
 		tipomotor_descripcion NVARCHAR(255)
 	)
 GO
 
 	CREATE TABLE [FFAN].[BI_CantidadCambios] (
-		cantidadcambios_id DECIMAL(2, 0) NOT NULL IDENTITY(1, 1) PRIMARY KEY,
-		cantidadcambios_nro decimal(2,0)
+		CANTIDADCAMBIOS_id DECIMAL(2, 0) IDENTITY(1,1) NOT NULL PRIMARY KEY,
+		CANTIDADCAMBIOS_nro decimal(2,0)
 	)
 GO
 
@@ -131,7 +131,7 @@ GO
 GO
 
 	CREATE TABLE [FFAN].[BI_Cliente] (
-		cliente_id DECIMAL(2, 0) NOT NULL PRIMARY KEY,
+		cliente_id DECIMAL(18, 0) NOT NULL PRIMARY KEY,
 		cliente_sexo nvarchar(1),
 		cliente_rango_etario DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_RangoEtario(rangoetario_id)
 	)
@@ -139,7 +139,7 @@ GO
 
 	CREATE TABLE [FFAN].[BI_Hechos_Compras] (
 		compras_idtiempo DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Tiempo(tiempo_id),
-		compras_idcliente DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_Cliente(cliente_id),
+		compras_idcliente DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Cliente(cliente_id),
 		compras_idsucursal DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Sucursal(sucursal_id),
 		compras_idmodelo DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Modelo(modelo_id),
 		compras_idfabricante DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Fabricante(fabricante_id),
@@ -149,7 +149,7 @@ GO
 		compras_idpotencia DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_Potencia(potencia_id),
 		compras_idtipotransmision DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoTransmision(tipotransmision_id),
 		compras_idtipomotor DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoMotor(tipomotor_id),
-		compras_idcantidadcambios DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_CantidadCambios(cantidadcambios_id),
+		compras_idCANTIDAD_CAMBIOS DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_CANTIDAD_CAMBIOS(CANTIDAD_CAMBIOS_id),
 		compras_unidades_automov decimal(18,0) NOT NULL,
 		compras_importe_automov decimal(18,2) NOT NULL,
 		compras_unidades_autopart decimal(18,0) NOT NULL,
@@ -160,7 +160,7 @@ GO
 
 	CREATE TABLE [FFAN].[BI_Hechos_Ventas] (
 		ventas_idtiempo DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Tiempo(tiempo_id),
-		ventas_idcliente DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_Cliente(cliente_id),
+		ventas_idcliente DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Cliente(cliente_id),
 		ventas_idsucursal DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Sucursal(sucursal_id),
 		ventas_idmodelo DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Modelo(modelo_id),
 		ventas_idfabricante DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Fabricante(fabricante_id),
@@ -170,7 +170,7 @@ GO
 		ventas_idpotencia DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_Potencia(potencia_id),
 		ventas_idtipotransmision DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoTransmision(tipotransmision_id),
 		ventas_idtipomotor DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoMotor(tipomotor_id),
-		ventas_idcantidadcambios DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_CantidadCambios(cantidadcambios_id),
+		ventas_idCANTIDAD_CAMBIOS DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_CANTIDAD_CAMBIOS(CANTIDAD_CAMBIOS_id),
 		ventas_unidades_automov decimal(18,0) NOT NULL,
 		ventas_importe_automov decimal(18,2) NOT NULL,
 		ventas_unidades_autopart decimal(18,0) NOT NULL,
@@ -197,7 +197,7 @@ NACHO
 
 ALEXIS
 	CREATE TABLE [FFAN].[BI_TipoMotor] (
-	CREATE TABLE [FFAN].[BI_CantidadCambios] (
+	CREATE TABLE [FFAN].[BI_CANTIDAD_CAMBIOS] (
 	CREATE TABLE [FFAN].[BI_RangoEtario] (
 	CREATE TABLE [FFAN].[BI_Cliente] (
 	
@@ -209,6 +209,8 @@ DISCUTIMOS MEJOR OPCION EL LUNES
 
 */
 
+
+
 INSERT INTO
 	FFAN.BI_TipoAutomovil
 SELECT
@@ -218,7 +220,7 @@ FROM
 	FFAN.TIPO_AUTO
 GO
 
-/*SE PONE NULL EN RUBRO HAST AQUE ENTANDAMOS A QUE SE REFIERE EL RUBRO*/
+/*SE PONE NULL EN RUBRO HAST AQUE ENTANDAMOS A QUE SE REFIERE EL RUBRO */
 INSERT INTO
 	FFAN.BI_Autoparte
 SELECT
@@ -228,3 +230,50 @@ SELECT
 FROM
 	FFAN.AUTOPARTE
 GO
+
+/* Inserts Alexis */
+INSERT
+	INTO
+	FFAN.BI_CantidadCambios (cantidadcambios_nro)
+values (null)
+GO
+
+
+insert
+	into
+	FFAN.BI_TipoMotor
+select
+	tm.TIPO_MOTOR_CODIGO,
+	tm.TIPO_MOTOR_DESC
+from
+	ffan.TIPO_MOTOR tm
+GO
+
+
+insert into ffan.BI_RangoEtario (rangoetario_descripcion ) values ('18 a 30 años')
+go
+insert into ffan.BI_RangoEtario (rangoetario_descripcion ) values ('31 a 50 años')
+go
+insert into ffan.BI_RangoEtario (rangoetario_descripcion ) values ('Mayor de 50 años')
+go
+insert into ffan.BI_RangoEtario (rangoetario_descripcion ) values ('Sin información')
+go
+
+insert
+	into
+	ffan.BI_Cliente (cliente_id, cliente_sexo, cliente_rango_etario )
+select
+	c.CLIENTE_ID,
+	null,
+	CASE
+		when floor(DATEDIFF(day, c.CLIENTE_FECHA_NAC, getdate())/ 365.2425) between 18 and 30 then 1
+		when floor(DATEDIFF(day, c.CLIENTE_FECHA_NAC, getdate())/ 365.2425) between 31 and 50 then 2
+		when floor(DATEDIFF(day, c.CLIENTE_FECHA_NAC, getdate())/ 365.2425) > 50 then 3
+		else 4
+	end
+from
+	ffan.CLIENTE c
+go
+	
+/* Fin inserción alexis */ 
+	
