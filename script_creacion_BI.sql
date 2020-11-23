@@ -62,7 +62,7 @@ GO
 GO
 
 	CREATE TABLE [FFAN].[BI_Fabricante] (
-		fabricante_id DECIMAL(18, 0) NOT NULL IDENTITY(1, 1) PRIMARY KEY,
+		fabricante_id DECIMAL(18, 0) NOT NULL  PRIMARY KEY,
 		fabricante_nombre NVARCHAR(255)
 	)
 GO
