@@ -300,3 +300,52 @@ BEGIN
 END
 
 --NACHO
+
+--PARA REVISAR
+select 
+(select tiempo_id from FFAN.BI_Tiempo where tiempo_anio = YEAR(FACTURA_FECHA) and tiempo_mes = MONTH(FACTURA_FECHA)) as tiempo,
+clb.cliente_id as cliente,
+(select sucursal_id from FFAN.SUCURSAL where sucursal_direccion=factura_sucursal_direccion and sucursal_ciudad= factura_sucursal_ciudad) as sucursal,
+modelo_codigo as modelo,
+fabricante_codigo as fabricante, --fabricante
+TIPO_CAJA_CODIGO as tipo_caja,-- tipo caja
+TIPO_AUTO_CODIGO as tipo_automovil, --tipo automovil
+0 as tipo_autoparte,
+potencia_id potencia,
+TIPO_TRANSMISION_CODIGO tipo_transmision, 
+TIPO_MOTOR_CODIGO as tipo_motor, 
+0 as cantidad_cambios,
+sum(item_factura_automovil_precio) importe_automov,
+count(item_factura_automovil_nro) unidades_automov
+from 
+FFAN.FACTURA left join FFAN.ITEM_FACTURA_AUTOMOVIL on FACTURA_NUMERO = ITEM_FACTURA_AUTOMOVIL_NRO
+left join FFAN.ITEM_FACTURA_AUTOPARTE on FACTURA_NUMERO = ITEM_FACTURA_AUTOPARTE_NRO
+left join FFAN.AUTOMOVIL on AUTO_ID = ITEM_FACTURA_AUTOMOVIL_ID
+left join FFAN.AUTOPARTE on AUTOPARTE_CODIGO = item_factura_autoparte_codigo
+left join FFAN.MODELO on (modelo_codigo = auto_modelo_codigo or modelo_codigo =AUTOPARTE_MODELO_CODIGO)
+left join FFAN.FABRICANTE on (FABRICANTE_CODIGO = AUTO_FABRICANTE_CODIGO or FABRICANTE_CODIGO =AUTOPARTE_FABRICANTE_CODIGO) 
+left join FFAN.TIPO_CAJA on (TIPO_CAJA_CODIGO = AUTO_TIPO_CAJA_CODIGO) 
+left join FFAN.TIPO_AUTO on (TIPO_AUTO_CODIGO = AUTO_TIPO_CODIGO) 
+left join FFAN.TIPO_TRANSMISION on (TIPO_TRANSMISION_CODIGO = AUTO_TIPO_TRANSMISION) 
+left join FFAN.TIPO_MOTOR on (TIPO_MOTOR_CODIGO = AUTO_TIPO_MOTOR_CODIGO) 
+join FFAN.CLIENTE cl on cl.cliente_id = factura_cliente_id
+join FFAN.BI_CLIENTE clb on (clb.cliente_sexo is null and 
+							clb.cliente_rango_etario = (case when DATEDIFF(yy, cl.cliente_fecha_nac,GETDATE()) between 18 and 30 then 1
+									when  DATEDIFF(yy, cl.cliente_fecha_nac,GETDATE()) between 31 and 50 then 2
+									when  DATEDIFF(yy, cl.cliente_fecha_nac,GETDATE()) > 50 then 3
+									else 4 end)
+							)
+join FFAN.BI_Potencia on (potencia_descripcion = (case when modelo_potencia between 50 and 150 then '50-150cv'
+									when  modelo_potencia between 151 and 300 then '151-300cv'
+									else '> 300cv' end)
+						 )
+group by year(factura_fecha),month(factura_fecha), --tiempo
+clb.cliente_id,
+factura_sucursal_ciudad,factura_sucursal_direccion,--sucursal
+modelo_codigo, 
+fabricante_codigo, 
+TIPO_CAJA_CODIGO,
+TIPO_AUTO_CODIGO,
+potencia_id,
+TIPO_TRANSMISION_CODIGO,
+TIPO_MOTOR_CODIGO 
