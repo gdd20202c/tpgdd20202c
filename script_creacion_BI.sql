@@ -122,7 +122,7 @@ GO
 GO
 
 	CREATE TABLE [FFAN].[BI_Cliente] (
-		cliente_id DECIMAL(18, 0) NOT NULL PRIMARY KEY,
+		cliente_id DECIMAL(18, 0) NOT NULL identity (1,1) PRIMARY KEY,
 		cliente_sexo nvarchar(1),
 		cliente_rango_etario DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_RangoEtario(rangoetario_id)
 	)
@@ -244,20 +244,53 @@ go
 
 insert
 	into
-	ffan.BI_Cliente (cliente_id, cliente_sexo, cliente_rango_etario )
-select
-	c.CLIENTE_ID,
-	null,
-	CASE
-		when floor(DATEDIFF(day, c.CLIENTE_FECHA_NAC, getdate())/ 365.2425) between 18 and 30 then 1
-		when floor(DATEDIFF(day, c.CLIENTE_FECHA_NAC, getdate())/ 365.2425) between 31 and 50 then 2
-		when floor(DATEDIFF(day, c.CLIENTE_FECHA_NAC, getdate())/ 365.2425) > 50 then 3
-		else 4
-	end
-from
-	ffan.CLIENTE c
+	ffan.BI_Cliente (cliente_sexo, cliente_rango_etario ) values ('M',1)
 go
-	
+insert
+	into
+	ffan.BI_Cliente ( cliente_sexo, cliente_rango_etario ) values ('M',2)
+go
+insert
+	into
+	ffan.BI_Cliente (cliente_sexo, cliente_rango_etario ) values ('M',3)
+go
+insert
+	into
+	ffan.BI_Cliente ( cliente_sexo, cliente_rango_etario ) values ('M',4)
+go
+insert
+	into
+	ffan.BI_Cliente ( cliente_sexo, cliente_rango_etario ) values ('F',1)
+go
+insert
+	into
+	ffan.BI_Cliente (cliente_sexo, cliente_rango_etario ) values ('F',2)
+go
+insert
+	into
+	ffan.BI_Cliente (cliente_sexo, cliente_rango_etario ) values ('F',3)
+go
+insert
+	into
+	ffan.BI_Cliente ( cliente_sexo, cliente_rango_etario ) values ('F',4)
+go
+insert
+	into
+	ffan.BI_Cliente (cliente_sexo, cliente_rango_etario ) values (null,1)
+go
+insert
+	into
+	ffan.BI_Cliente (cliente_sexo, cliente_rango_etario ) values (null,2)
+go
+insert
+	into
+	ffan.BI_Cliente (cliente_sexo, cliente_rango_etario ) values (null,3)
+go
+insert
+	into
+	ffan.BI_Cliente ( cliente_sexo, cliente_rango_etario ) values (null,4)
+go
+
 /* Fin inserción alexis */ 
 	
 
@@ -284,8 +317,8 @@ go
 DECLARE @MES INT 
 DECLARE @ANIO INT
 SET @MES=1
-SET @ANIO=18
-WHILE ( @ANIO <= 20)
+SET @ANIO=2018
+WHILE ( @ANIO <= 2020)
 BEGIN
 	IF @MES <=12
 		BEGIN
@@ -301,51 +334,175 @@ END
 
 --NACHO
 
---PARA REVISAR
-select 
-(select tiempo_id from FFAN.BI_Tiempo where tiempo_anio = YEAR(FACTURA_FECHA) and tiempo_mes = MONTH(FACTURA_FECHA)) as tiempo,
-clb.cliente_id as cliente,
-(select sucursal_id from FFAN.SUCURSAL where sucursal_direccion=factura_sucursal_direccion and sucursal_ciudad= factura_sucursal_ciudad) as sucursal,
-modelo_codigo as modelo,
-fabricante_codigo as fabricante, --fabricante
-TIPO_CAJA_CODIGO as tipo_caja,-- tipo caja
-TIPO_AUTO_CODIGO as tipo_automovil, --tipo automovil
-0 as tipo_autoparte,
-potencia_id potencia,
-TIPO_TRANSMISION_CODIGO tipo_transmision, 
-TIPO_MOTOR_CODIGO as tipo_motor, 
-0 as cantidad_cambios,
-sum(item_factura_automovil_precio) importe_automov,
-count(item_factura_automovil_nro) unidades_automov
-from 
-FFAN.FACTURA left join FFAN.ITEM_FACTURA_AUTOMOVIL on FACTURA_NUMERO = ITEM_FACTURA_AUTOMOVIL_NRO
-left join FFAN.ITEM_FACTURA_AUTOPARTE on FACTURA_NUMERO = ITEM_FACTURA_AUTOPARTE_NRO
-left join FFAN.AUTOMOVIL on AUTO_ID = ITEM_FACTURA_AUTOMOVIL_ID
-left join FFAN.AUTOPARTE on AUTOPARTE_CODIGO = item_factura_autoparte_codigo
-left join FFAN.MODELO on (modelo_codigo = auto_modelo_codigo or modelo_codigo =AUTOPARTE_MODELO_CODIGO)
-left join FFAN.FABRICANTE on (FABRICANTE_CODIGO = AUTO_FABRICANTE_CODIGO or FABRICANTE_CODIGO =AUTOPARTE_FABRICANTE_CODIGO) 
-left join FFAN.TIPO_CAJA on (TIPO_CAJA_CODIGO = AUTO_TIPO_CAJA_CODIGO) 
-left join FFAN.TIPO_AUTO on (TIPO_AUTO_CODIGO = AUTO_TIPO_CODIGO) 
-left join FFAN.TIPO_TRANSMISION on (TIPO_TRANSMISION_CODIGO = AUTO_TIPO_TRANSMISION) 
-left join FFAN.TIPO_MOTOR on (TIPO_MOTOR_CODIGO = AUTO_TIPO_MOTOR_CODIGO) 
-join FFAN.CLIENTE cl on cl.cliente_id = factura_cliente_id
-join FFAN.BI_CLIENTE clb on (clb.cliente_sexo is null and 
-							clb.cliente_rango_etario = (case when DATEDIFF(yy, cl.cliente_fecha_nac,GETDATE()) between 18 and 30 then 1
-									when  DATEDIFF(yy, cl.cliente_fecha_nac,GETDATE()) between 31 and 50 then 2
-									when  DATEDIFF(yy, cl.cliente_fecha_nac,GETDATE()) > 50 then 3
-									else 4 end)
-							)
-join FFAN.BI_Potencia on (potencia_descripcion = (case when modelo_potencia between 50 and 150 then '50-150cv'
-									when  modelo_potencia between 151 and 300 then '151-300cv'
-									else '> 300cv' end)
-						 )
-group by year(factura_fecha),month(factura_fecha), --tiempo
-clb.cliente_id,
-factura_sucursal_ciudad,factura_sucursal_direccion,--sucursal
-modelo_codigo, 
-fabricante_codigo, 
-TIPO_CAJA_CODIGO,
-TIPO_AUTO_CODIGO,
-potencia_id,
-TIPO_TRANSMISION_CODIGO,
-TIPO_MOTOR_CODIGO 
+-- VENTAS
+select
+	(
+	select
+		tiempo_id
+	from
+		FFAN.BI_Tiempo
+	where
+		tiempo_anio = YEAR(FACTURA_FECHA)
+		and tiempo_mes = MONTH(FACTURA_FECHA)) as tiempo,
+	clb.cliente_id as cliente,
+	(
+	select
+		sucursal_id
+	from
+		FFAN.SUCURSAL
+	where
+		sucursal_direccion = factura_sucursal_direccion
+		and sucursal_ciudad = factura_sucursal_ciudad) as sucursal,
+	modelo_codigo as modelo,
+	fabricante_codigo as fabricante,
+	--fabricante
+ TIPO_CAJA_CODIGO as tipo_caja,
+	-- tipo caja
+ TIPO_AUTO_CODIGO as tipo_automovil,
+	--tipo automovil
+ null as tipo_autoparte,
+	potencia_id potencia,
+	TIPO_TRANSMISION_CODIGO tipo_transmision,
+	TIPO_MOTOR_CODIGO as tipo_motor,
+	null as cantidad_cambios,
+	sum(item_factura_automovil_precio) importe_automov,
+	count(item_factura_automovil_nro) unidades_automov
+from
+	FFAN.FACTURA
+left join FFAN.ITEM_FACTURA_AUTOMOVIL on
+	FACTURA_NUMERO = ITEM_FACTURA_AUTOMOVIL_NRO
+left join FFAN.ITEM_FACTURA_AUTOPARTE on
+	FACTURA_NUMERO = ITEM_FACTURA_AUTOPARTE_NRO
+left join FFAN.AUTOMOVIL on
+	AUTO_ID = ITEM_FACTURA_AUTOMOVIL_ID
+left join FFAN.AUTOPARTE on
+	AUTOPARTE_CODIGO = item_factura_autoparte_codigo
+left join FFAN.MODELO on
+	(modelo_codigo = auto_modelo_codigo
+	or modelo_codigo = AUTOPARTE_MODELO_CODIGO)
+left join FFAN.FABRICANTE fab on
+	(FABRICANTE_CODIGO = AUTO_FABRICANTE_CODIGO
+	or FABRICANTE_CODIGO = AUTOPARTE_FABRICANTE_CODIGO)
+left join FFAN.TIPO_CAJA on
+	(TIPO_CAJA_CODIGO = AUTO_TIPO_CAJA_CODIGO)
+left join FFAN.TIPO_AUTO on
+	(TIPO_AUTO_CODIGO = AUTO_TIPO_CODIGO)
+left join FFAN.TIPO_TRANSMISION on
+	(TIPO_TRANSMISION_CODIGO = AUTO_TIPO_TRANSMISION)
+left join FFAN.TIPO_MOTOR on
+	(TIPO_MOTOR_CODIGO = AUTO_TIPO_MOTOR_CODIGO)
+join FFAN.CLIENTE cl on
+	cl.cliente_id = factura_cliente_id
+join FFAN.BI_CLIENTE clb on
+	(clb.cliente_sexo is null
+	and clb.cliente_rango_etario =
+	(case
+		when DATEDIFF(yy, cl.cliente_fecha_nac, factura_fecha) between 18 and 30 then 1
+		when DATEDIFF(yy, cl.cliente_fecha_nac, factura_fecha) between 31 and 50 then 2
+		when DATEDIFF(yy, cl.cliente_fecha_nac, factura_fecha) > 50 then 3
+		else 4
+	end) )
+join FFAN.BI_Potencia on
+	(potencia_descripcion =
+	(case
+		when modelo_potencia between 50 and 150 then '50-150cv'
+		when modelo_potencia between 151 and 300 then '151-300cv'
+		else '> 300cv'
+	end) )
+--	where tiempo = 2 and cliente = 9 and sucursal = 2 and modelo = 960 and fabricante = 2 and tipo_caja = 1004
+group by
+	year(factura_fecha),
+	month(factura_fecha),
+	--tiempo
+ clb.cliente_id,
+	factura_sucursal_ciudad,
+	factura_sucursal_direccion,
+	--sucursal
+ 	modelo_codigo,
+	fabricante_codigo,
+	TIPO_CAJA_CODIGO,
+	TIPO_AUTO_CODIGO,
+	potencia_id,
+	TIPO_TRANSMISION_CODIGO,
+	TIPO_MOTOR_CODIGO
+	
+	
+	
+-- Compras
+ select
+	(
+	select
+		tiempo_id
+	from
+		FFAN.BI_Tiempo
+	where
+		tiempo_anio = YEAR(c.COMPRA_FECHA)
+		and tiempo_mes = MONTH(compra_FECHA)) as tiempo,
+	clb.cliente_id as cliente,
+	c.COMPRA_SUCURSAL_ID ,
+	f.FABRICANTE_CODIGO,
+	am.auto_TIPO_CAJA_CODIGO,
+	am.auto_TIPO_CODIGO,
+	null as tipo_autoparte,
+	m.MODELO_CODIGO, 
+	potencia_id potencia,
+	TIPO_TRANSMISION_CODIGO tipo_transmision,
+	TIPO_MOTOR_CODIGO as tipo_motor,
+	null as cantidad_cambios,
+	sum(ica.ITEM_COMPRA_AUTO_AUTOMOVIL_PRECIO) importe_automov,
+	count(ica.ITEM_COMPRA_AUTO_NRO) unidades_automov
+from
+	FFAN.COMPRA c
+left join FFAN.ITEM_COMPRA_AUTOMOVIL ica on
+	c.COMPRA_NRO = ica.ITEM_compra_AUTO_NRO
+left join FFAN.AUTOMOVIL am on
+	ica.item_compra_auto_id = am.AUTO_ID
+left join FFAN.ITEM_COMPRA_AUTOPARTE ica2 on
+	c.COMPRA_NRO = ica2.ITEM_COMPRA_AUTOPARTE_NRO
+left join FFAN.AUTOPARTE ap on
+	ap.AUTOPARTE_CODIGO = ica2.item_compra_autoparte_codigo
+left join FFAN.MODELO m on
+	(m.modelo_codigo = am.auto_modelo_codigo
+	or m.modelo_codigo = ap.AUTOPARTE_MODELO_CODIGO)
+left join ffan.TIPO_CAJA tc on
+	am.auto_tipo_caja_codigo = tc.TIPO_CAJA_CODIGO
+left join FFAN.FABRICANTE f on
+	(f.FABRICANTE_CODIGO = am.AUTO_FABRICANTE_CODIGO
+	or f.FABRICANTE_CODIGO = ap.AUTOPARTE_FABRICANTE_CODIGO)
+left join FFAN.TIPO_CAJA tp on
+	(tp.TIPO_CAJA_CODIGO = am.AUTO_TIPO_CAJA_CODIGO)
+left join FFAN.TIPO_AUTO ta on
+	(ta.TIPO_AUTO_CODIGO = am.AUTO_TIPO_CODIGO)
+left join FFAN.TIPO_TRANSMISION tt on
+	(tt.TIPO_TRANSMISION_CODIGO = am.AUTO_TIPO_TRANSMISION)
+left join FFAN.TIPO_MOTOR tm on
+	(tm.TIPO_MOTOR_CODIGO = am.AUTO_TIPO_MOTOR_CODIGO)
+join FFAN.CLIENTE cl on
+	cl.cliente_id = c.compra_cliente
+join FFAN.BI_CLIENTE clb on
+	(clb.cliente_sexo is null
+	and clb.cliente_rango_etario =
+	(case
+		when DATEDIFF(yy, cl.cliente_fecha_nac, compra_fecha) between 18 and 30 then 1
+		when DATEDIFF(yy, cl.cliente_fecha_nac, compra_fecha) between 31 and 50 then 2
+		when DATEDIFF(yy, cl.cliente_fecha_nac, compra_fecha) > 50 then 3
+		else 4
+	end) )
+join FFAN.BI_Potencia p on
+	(p.potencia_descripcion =
+	(case
+		when m.modelo_potencia between 50 and 150 then '50-150cv'
+		when m.modelo_potencia between 151 and 300 then '151-300cv'
+		else '> 300cv'
+	end) )
+	group by year(c.compra_fecha),
+	month(c.compra_fecha),
+ clb.cliente_id,
+	c.COMPRA_SUCURSAL_ID ,
+	m.MODELO_CODIGO, 
+	f.fabricante_codigo,
+	am.auto_TIPO_CAJA_CODIGO,
+	am.auto_tipo_codigo,
+	potencia_id,
+	tt.TIPO_TRANSMISION_CODIGO,
+	tm.TIPO_MOTOR_CODIGO
