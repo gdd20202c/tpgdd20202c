@@ -547,3 +547,21 @@ join FFAN.BI_Potencia p on
 	potencia_id,
 	tt.TIPO_TRANSMISION_CODIGO,
 	tm.TIPO_MOTOR_CODIGO
+
+
+/*
+
+Automóviles:
+o Cantidad de automóviles, vendidos y comprados x sucursal y mes  NACHO
+o Precio promedio de automóviles, vendidos y comprados.  FACU
+o Ganancias (precio de venta – precio de compra) x Sucursal x mes FEDE
+o Promedio de tiempo en stock de cada modelo de automóvil. ALEXIS
+o 
+Autopartes (Preguntar si autoparte es una dimensión y hay que llegar al detalle. En base a esto cambiamos las tablas de hechos agregando autoparte_id agrupado)
+o Precio promedio de cada autoparte, vendida y comprada. 
+o Ganancias (precio de venta – precio de compra) x Sucursal x mes
+o Promedio de tiempo en stock de cada autoparte.
+o Máxima cantidad de stock por cada sucursal (anual)
+
+*/
+
