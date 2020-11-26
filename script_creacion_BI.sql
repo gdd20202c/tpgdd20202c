@@ -553,6 +553,9 @@ GO
 VISTAS
 -------
 -- Precio promedio de automóviles, vendidos y comprados
+
+IF OBJECT_ID('V_Precio_Promedio_Automoviles', 'V') IS NOT NULL DROP VIEW[V_Precio_Promedio_Automoviles];
+go
 CREATE VIEW V_Precio_Promedio_Automoviles
 AS 
 select 
@@ -561,6 +564,25 @@ tipoautomovil_id tipo_automovil,
 (select  sum(ventas_importe_automov)/sum(ventas_unidades_automov) from FFAN.BI_Hechos_Ventas where ventas_idtipoautomovil = tipoautomovil_id) prom_precio_venta
 from FFAN.BI_TipoAutomovil
 GO
+
+IF OBJECT_ID('V_Cantidad_Compras_Automoviles_Sucursal_Mes', 'V') IS NOT NULL DROP VIEW[V_Cantidad_Compras_Automoviles_Sucursal_Mes];
+go
+CREATE VIEW V_Cantidad_Compras_Automoviles_Sucursal_Mes
+AS
+select compras_idsucursal as SUCURSAL_COMPRA ,compras_idtiempo TIEMPO_COMPRA , sum(compras_unidades_automov) AS CANTIDAD_COMPRA 
+from FFAN.BI_Hechos_Compras
+group by compras_idtiempo, compras_idsucursal
+go
+
+IF OBJECT_ID('V_Cantidad_Ventas_Automoviles_Sucursal_Mes', 'V') IS NOT NULL DROP VIEW [V_Cantidad_Ventas_Automoviles_Sucursal_Mes];
+go
+CREATE VIEW V_Cantidad_Ventas_Automoviles_Sucursal_Mes
+AS
+select ventas_idsucursal as SUCURSAL ,ventas_idtiempo TIEMPO , sum(ventas_unidades_automov) AS CANTIDAD_COMPRA
+from FFAN.BI_Hechos_Ventas
+group by ventas_idtiempo, ventas_idsucursal
+go
+
 
 
 /*
