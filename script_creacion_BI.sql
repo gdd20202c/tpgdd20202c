@@ -549,6 +549,19 @@ join FFAN.BI_Potencia p on
 	tm.TIPO_MOTOR_CODIGO
 GO
 
+-------
+VISTAS
+-------
+-- Precio promedio de automóviles, vendidos y comprados
+CREATE VIEW V_Precio_Promedio_Automoviles
+AS 
+select 
+tipoautomovil_id tipo_automovil,
+(select  sum(compras_importe_automov)/sum(compras_unidades_automov) from FFAN.BI_Hechos_Compras where compras_idtipoautomovil = tipoautomovil_id) prom_precio_compra,
+(select  sum(ventas_importe_automov)/sum(ventas_unidades_automov) from FFAN.BI_Hechos_Ventas where ventas_idtipoautomovil = tipoautomovil_id) prom_precio_venta
+from FFAN.BI_TipoAutomovil
+GO
+
 
 /*
 
