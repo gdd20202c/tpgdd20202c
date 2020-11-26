@@ -376,6 +376,7 @@ END
 --NACHO
 
 -- VENTAS
+insert into FFAN.BI_Hechos_Ventas
 select
 	(
 	select
@@ -396,18 +397,17 @@ select
 		and sucursal_ciudad = factura_sucursal_ciudad) as sucursal,
 	modelo_codigo as modelo,
 	fabricante_codigo as fabricante,
-	--fabricante
- TIPO_CAJA_CODIGO as tipo_caja,
-	-- tipo caja
- TIPO_AUTO_CODIGO as tipo_automovil,
-	--tipo automovil
- null as tipo_autoparte,
+	TIPO_CAJA_CODIGO as tipo_caja,
+	TIPO_AUTO_CODIGO as tipo_automovil,
+    0 as rubroautoparte,
 	potencia_id potencia,
 	TIPO_TRANSMISION_CODIGO tipo_transmision,
 	TIPO_MOTOR_CODIGO as tipo_motor,
-	null as cantidad_cambios,
-	sum(item_factura_automovil_precio) importe_automov,
-	count(item_factura_automovil_nro) unidades_automov
+	1 as cantidad_cambios,
+	isnull(count(item_factura_automovil_nro),0) unidades_automov,
+	isnull(sum(item_factura_automovil_precio),0) importe_automov,
+	isnull(count(ITEM_FACTURA_AUTOPARTE_NRO),0) unidades_automov,
+	isnull(sum(ITEM_FACTURA_AUTOPARTE_PRECIO),0) importe_automov
 from
 	FFAN.FACTURA
 left join FFAN.ITEM_FACTURA_AUTOMOVIL on
@@ -450,15 +450,12 @@ join FFAN.BI_Potencia on
 		when modelo_potencia between 151 and 300 then '151-300cv'
 		else '> 300cv'
 	end) )
---	where tiempo = 2 and cliente = 9 and sucursal = 2 and modelo = 960 and fabricante = 2 and tipo_caja = 1004
 group by
 	year(factura_fecha),
 	month(factura_fecha),
-	--tiempo
- clb.cliente_id,
+	clb.cliente_id,
 	factura_sucursal_ciudad,
 	factura_sucursal_direccion,
-	--sucursal
  	modelo_codigo,
 	fabricante_codigo,
 	TIPO_CAJA_CODIGO,
@@ -466,7 +463,7 @@ group by
 	potencia_id,
 	TIPO_TRANSMISION_CODIGO,
 	TIPO_MOTOR_CODIGO
-	
+GO	
 	
 	
 -- Compras
