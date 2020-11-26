@@ -470,7 +470,8 @@ group by
 	
 	
 -- Compras
- select
+insert into FFAN.BI_Hechos_Compras
+select
 	(
 	select
 		tiempo_id
@@ -481,17 +482,19 @@ group by
 		and tiempo_mes = MONTH(compra_FECHA)) as tiempo,
 	clb.cliente_id as cliente,
 	c.COMPRA_SUCURSAL_ID ,
+	m.MODELO_CODIGO, 
 	f.FABRICANTE_CODIGO,
 	am.auto_TIPO_CAJA_CODIGO,
 	am.auto_TIPO_CODIGO,
-	null as tipo_autoparte,
-	m.MODELO_CODIGO, 
+	0 as rubroautoparte,
 	potencia_id potencia,
 	TIPO_TRANSMISION_CODIGO tipo_transmision,
 	TIPO_MOTOR_CODIGO as tipo_motor,
-	null as cantidad_cambios,
-	sum(ica.ITEM_COMPRA_AUTO_AUTOMOVIL_PRECIO) importe_automov,
-	count(ica.ITEM_COMPRA_AUTO_NRO) unidades_automov
+	1 as cantidad_cambios,
+	isnull(count(ica.ITEM_COMPRA_AUTO_NRO),0) unidades_automov,
+	isnull(sum(ica.ITEM_COMPRA_AUTO_AUTOMOVIL_PRECIO),0) importe_automov,
+	isnull(count(ica2.ITEM_COMPRA_AUTOPARTE_NRO),0) unidades_automov,
+	isnull(sum(ica2.ITEM_COMPRA_AUTOPARTE_PRECIO),0) importe_automov
 from
 	FFAN.COMPRA c
 left join FFAN.ITEM_COMPRA_AUTOMOVIL ica on
@@ -538,7 +541,7 @@ join FFAN.BI_Potencia p on
 	end) )
 	group by year(c.compra_fecha),
 	month(c.compra_fecha),
- clb.cliente_id,
+	clb.cliente_id,
 	c.COMPRA_SUCURSAL_ID ,
 	m.MODELO_CODIGO, 
 	f.fabricante_codigo,
@@ -547,6 +550,7 @@ join FFAN.BI_Potencia p on
 	potencia_id,
 	tt.TIPO_TRANSMISION_CODIGO,
 	tm.TIPO_MOTOR_CODIGO
+GO
 
 
 /*
