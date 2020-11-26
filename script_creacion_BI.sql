@@ -40,7 +40,14 @@ GO
 	IF OBJECT_ID('FFAN.BI_RangoEtario', 'U') IS NOT NULL DROP TABLE [FFAN].[BI_RangoEtario];
 
 GO
+IF OBJECT_ID('FFAN.BI_Autoparte', 'U') IS NOT NULL DROP TABLE [FFAN].[BI_Autoparte];
 
+GO
+
+	CREATE TABLE [FFAN].[BI_Autoparte] (
+		autoparte_codigo DECIMAL(18, 0) NOT NULL  PRIMARY KEY,
+		autoparte_descripcion nvarchar(255)
+	)
 GO
 
 	CREATE TABLE [FFAN].[BI_Sucursal](
@@ -136,6 +143,7 @@ GO
 		compras_idfabricante DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Fabricante(fabricante_id),
 		compras_idtipocaja DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoCaja(tipocaja_id),
 		compras_idtipoautomovil DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoAutomovil(tipoautomovil_id),
+		compras_idautoparte DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Autoparte(autoparte_codigo),
 		compras_idrubroautoparte DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_RubroAutoparte(rubroautoparte_id),
 		compras_idpotencia DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_Potencia(potencia_id),
 		compras_idtipotransmision DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoTransmision(tipotransmision_id),
@@ -157,6 +165,7 @@ GO
 		ventas_idfabricante DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Fabricante(fabricante_id),
 		ventas_idtipocaja DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoCaja(tipocaja_id),
 		ventas_idtipoautomovil DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoAutomovil(tipoautomovil_id),
+		ventas_idautoparte DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Autoparte(autoparte_codigo),
 		ventas_idrubroautoparte DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_RubroAutoparte(rubroautoparte_id),
 		ventas_idpotencia DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_Potencia(potencia_id),
 		ventas_idtipotransmision DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoTransmision(tipotransmision_id),
@@ -169,37 +178,16 @@ GO
 	)
 GO
 
-/* 
-   FEDE
-	CREATE TABLE [FFAN].[BI_Sucursal](
-	CREATE TABLE [FFAN].[BI_Modelo] (
-	CREATE TABLE [FFAN].[BI_Fabricante] (
-	CREATE TABLE [FFAN].[BI_TipoCaja] (
-
-FACU
-	CREATE TABLE [FFAN].[BI_TipoAutomovil] (
-	CREATE TABLE [FFAN].[BI_RubroAutoparte] (
-    CREATE TABLE [FFAN].[BI_Autoparte] (
-
-NACHO
-	CREATE TABLE [FFAN].[BI_Potencia] (
-	CREATE TABLE [FFAN].[BI_Tiempo] (
-	CREATE TABLE [FFAN].[BI_TipoTransmision] (
-
-ALEXIS
-	CREATE TABLE [FFAN].[BI_TipoMotor] (
-	CREATE TABLE [FFAN].[BI_CANTIDAD_CAMBIOS] (
-	CREATE TABLE [FFAN].[BI_RangoEtario] (
-	CREATE TABLE [FFAN].[BI_Cliente] (
-	
-	
-DISCUTIMOS MEJOR OPCION EL LUNES
-	CREATE TABLE [FFAN].[BI_Hechos_Compras] (
-	CREATE TABLE [FFAN].[BI_Hechos_Ventas] (
 
 
-*/
-
+INSERT INTO
+	FFAN.BI_Autoparte
+SELECT 
+    AUTOPARTE_CODIGO,
+	AUTOPARTE_DESCRIPCION
+FROM
+	FFAN.AUTOPARTE
+GO
 
 
 INSERT INTO
@@ -399,6 +387,7 @@ select
 	fabricante_codigo as fabricante,
 	TIPO_CAJA_CODIGO as tipo_caja,
 	TIPO_AUTO_CODIGO as tipo_automovil,
+	AUTOPARTE_CODIGO,
     0 as rubroautoparte,
 	potencia_id potencia,
 	TIPO_TRANSMISION_CODIGO tipo_transmision,
@@ -462,7 +451,8 @@ group by
 	TIPO_AUTO_CODIGO,
 	potencia_id,
 	TIPO_TRANSMISION_CODIGO,
-	TIPO_MOTOR_CODIGO
+	TIPO_MOTOR_CODIGO,
+	AUTOPARTE_CODIGO
 GO	
 	
 	
@@ -483,6 +473,7 @@ select
 	f.FABRICANTE_CODIGO,
 	am.auto_TIPO_CAJA_CODIGO,
 	am.auto_TIPO_CODIGO,
+	ap.AUTOPARTE_CODIGO,
 	0 as rubroautoparte,
 	potencia_id potencia,
 	TIPO_TRANSMISION_CODIGO tipo_transmision,
@@ -546,7 +537,8 @@ join FFAN.BI_Potencia p on
 	am.auto_tipo_codigo,
 	potencia_id,
 	tt.TIPO_TRANSMISION_CODIGO,
-	tm.TIPO_MOTOR_CODIGO
+	tm.TIPO_MOTOR_CODIGO,
+	ap.AUTOPARTE_CODIGO
 GO
 
 -------
