@@ -352,7 +352,7 @@ BEGIN
 	IF @MES <=12
 		BEGIN
 			insert into ffan.BI_Tiempo (tiempo_mes,tiempo_anio) values (@MES, @ANIO)
-			SET @MES  = @MES  + 1;
+			SET @MES  = @MES  + 1
 	END
 	ELSE
 		BEGIN
@@ -360,6 +360,7 @@ BEGIN
 			SET @ANIO=@ANIO+1
 		END
 END
+GO
 
 --NACHO
 
@@ -586,10 +587,10 @@ o Ganancias (precio de venta – precio de compra) x Sucursal x mes FEDE
 o Promedio de tiempo en stock de cada modelo de automóvil. ALEXIS
 o 
 Autopartes (Preguntar si autoparte es una dimensión y hay que llegar al detalle. En base a esto cambiamos las tablas de hechos agregando autoparte_id agrupado)
-o Precio promedio de cada autoparte, vendida y comprada. 
-o Ganancias (precio de venta – precio de compra) x Sucursal x mes
-o Promedio de tiempo en stock de cada autoparte.
-o Máxima cantidad de stock por cada sucursal (anual)
+o Precio promedio de cada autoparte, vendida y comprada. NACHO
+o Ganancias (precio de venta – precio de compra) x Sucursal x mes FACU
+o Promedio de tiempo en stock de cada autoparte. FEDE
+o Máxima cantidad de stock por cada sucursal (anual) ALEXIS
 
 */
 
