@@ -644,6 +644,18 @@ group by ventas_idtiempo, ventas_idsucursal
 go
 
 
+IF OBJECT_ID('V_Precio_Promedio_Autoparte', 'V') IS NOT NULL DROP VIEW [V_Precio_Promedio_Autoparte];
+go
+CREATE VIEW V_Precio_Promedio_Autoparte
+AS
+select A.AUTOPARTE_CODIGO AS CODIGO_AUTOPARTE,
+isnull((select sum(ventas_importe_autopart)/sum(ventas_unidades_autopart) 
+from FFAN.BI_Hechos_Ventas where ventas_idautoparte = A.AUTOPARTE_CODIGO),0) as PRECIO_PROMEDIO_VENTA,
+isnull((select sum(compras_importe_autopart)/sum(compras_unidades_autopart) 
+from FFAN.BI_Hechos_Compras where compras_idautoparte = A.AUTOPARTE_CODIGO),0) as PRECIO_PROMEDIO_COMPRA
+from FFAN.BI_Autoparte A
+GROUP BY A.AUTOPARTE_CODIGO
+go
 
 /*
 
