@@ -1,6 +1,7 @@
 USE [GD2C2020]
 GO
 
+
 	IF OBJECT_ID('FFAN.BI_Hechos_Compras', 'U') IS NOT NULL DROP TABLE [FFAN].[BI_Hechos_Compras];
 GO
 	IF OBJECT_ID('FFAN.BI_Hechos_Ventas', 'U') IS NOT NULL DROP TABLE [FFAN].[BI_Hechos_Ventas];
@@ -40,8 +41,11 @@ GO
 	IF OBJECT_ID('FFAN.BI_RangoEtario', 'U') IS NOT NULL DROP TABLE [FFAN].[BI_RangoEtario];
 
 GO
-IF OBJECT_ID('FFAN.BI_Autoparte', 'U') IS NOT NULL DROP TABLE [FFAN].[BI_Autoparte];
 
+IF OBJECT_ID('FFAN.BI_Autoparte', 'U') IS NOT NULL DROP TABLE [FFAN].[BI_Autoparte];
+GO
+
+IF OBJECT_ID('FFAN.BI_Automovil', 'U') IS NOT NULL DROP TABLE [FFAN].[BI_Automovil];
 GO
 
 	CREATE TABLE [FFAN].[BI_Autoparte] (
@@ -135,10 +139,21 @@ GO
 	)
 GO
 
-	CREATE TABLE [FFAN].[BI_Hechos_Compras] (
+CREATE TABLE [FFAN].[BI_Automovil] (
+auto_id decimal(18,0) not null PRIMARY KEY,
+auto_patente nvarchar(50) not null,
+auto_fecha_alta datetime2(2) not null,
+auto_nro_motor nvarchar(50) not null
+)
+GO 
+
+
+CREATE TABLE [FFAN].[BI_Hechos_Compras] (
 		compras_idtiempo DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Tiempo(tiempo_id),
 		compras_idcliente DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Cliente(cliente_id),
 		compras_idsucursal DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Sucursal(sucursal_id),
+		compra_fecha datetime NOT NULL,
+		compra_auto_id DECIMAL(18,0) FOREIGN KEY REFERENCES FFAN.BI_Automovil(auto_id),
 		compras_idmodelo DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Modelo(modelo_id),
 		compras_idfabricante DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Fabricante(fabricante_id),
 		compras_idtipocaja DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoCaja(tipocaja_id),
@@ -149,10 +164,9 @@ GO
 		compras_idtipotransmision DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoTransmision(tipotransmision_id),
 		compras_idtipomotor DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoMotor(tipomotor_id),
 		compras_idCANTIDAD_CAMBIOS DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_CantidadCambios(CANTIDADCAMBIOS_id),
-		compras_unidades_automov decimal(18,0) NOT NULL,
-		compras_importe_automov decimal(18,2) NOT NULL,
-		compras_unidades_autopart decimal(18,0) NOT NULL,
-		compras_importe_autopart decimal(18,2) NOT NULL
+		compras_importe_automov decimal(18,2),
+		compras_unidades_autopart decimal(18,0),
+		compras_importe_autopart decimal(18,2)
 	)
 GO
 
@@ -161,6 +175,8 @@ GO
 		ventas_idtiempo DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Tiempo(tiempo_id),
 		ventas_idcliente DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Cliente(cliente_id),
 		ventas_idsucursal DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Sucursal(sucursal_id),
+		ventas_fecha_venta datetime2(2) not null,
+		venta_auto_id DECIMAL(18,0) FOREIGN KEY REFERENCES FFAN.BI_Automovil(auto_id),
 		ventas_idmodelo DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Modelo(modelo_id),
 		ventas_idfabricante DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_Fabricante(fabricante_id),
 		ventas_idtipocaja DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoCaja(tipocaja_id),
@@ -171,10 +187,9 @@ GO
 		ventas_idtipotransmision DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoTransmision(tipotransmision_id),
 		ventas_idtipomotor DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoMotor(tipomotor_id),
 		ventas_idCANTIDAD_CAMBIOS DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_CantidadCambios(CANTIDADCAMBIOS_id),
-		ventas_unidades_automov decimal(18,0) NOT NULL,
-		ventas_importe_automov decimal(18,2) NOT NULL,
-		ventas_unidades_autopart decimal(18,0) NOT NULL,
-		ventas_importe_autopart decimal(18,2) NOT NULL
+		ventas_importe_automov decimal(18,2),
+		ventas_unidades_autopart decimal(18,0),
+		ventas_importe_autopart decimal(18,2)
 	)
 GO
 
@@ -242,8 +257,7 @@ SELECT
 FROM
 	FFAN.TIPO_CAJA tc
 
-/* Fin Inserts Fede */
-/* Inserts Alexis */
+	
 INSERT
 	INTO
 	FFAN.BI_CantidadCambios (cantidadcambios_nro)
@@ -320,10 +334,7 @@ insert
 	ffan.BI_Cliente ( cliente_sexo, cliente_rango_etario ) values (null,4)
 go
 
-/* Fin inserción alexis */ 
-	
 
--- NACHO
 
 insert
 	into
@@ -362,7 +373,18 @@ BEGIN
 END
 GO
 
---NACHO
+
+insert
+	into
+	FFAN.BI_Automovil
+SELECT
+	a.auto_id,
+	a.auto_patente,
+	a.auto_fecha_alta,
+	a.auto_nro_motor
+from
+	FFAN.AUTOMOVIL a
+GO
 
 -- VENTAS
 insert into FFAN.BI_Hechos_Ventas
@@ -384,6 +406,8 @@ select
 	where
 		sucursal_direccion = factura_sucursal_direccion
 		and sucursal_ciudad = factura_sucursal_ciudad) as sucursal,
+	factura_fecha as fecha_venta,
+	auto_id, 
 	modelo_codigo as modelo,
 	fabricante_codigo as fabricante,
 	TIPO_CAJA_CODIGO as tipo_caja,
@@ -394,10 +418,9 @@ select
 	TIPO_TRANSMISION_CODIGO tipo_transmision,
 	TIPO_MOTOR_CODIGO as tipo_motor,
 	1 as cantidad_cambios,
-	isnull(count(item_factura_automovil_nro),0) unidades_automov,
-	isnull(sum(item_factura_automovil_precio),0) importe_automov,
-	isnull(count(ITEM_FACTURA_AUTOPARTE_NRO),0) unidades_automov,
-	isnull(sum(ITEM_FACTURA_AUTOPARTE_PRECIO),0) importe_automov
+	sum(item_factura_automovil_precio) importe_automovil,
+	count(ITEM_FACTURA_AUTOPARTE_NRO) unidades_autoparte,
+	sum(ITEM_FACTURA_AUTOPARTE_PRECIO) importe_autoparte
 from
 	FFAN.FACTURA
 left join FFAN.ITEM_FACTURA_AUTOMOVIL on
@@ -446,6 +469,8 @@ group by
 	clb.cliente_id,
 	factura_sucursal_ciudad,
 	factura_sucursal_direccion,
+	factura_fecha,
+	auto_id,
  	modelo_codigo,
 	fabricante_codigo,
 	TIPO_CAJA_CODIGO,
@@ -467,10 +492,12 @@ select
 		FFAN.BI_Tiempo
 	where
 		tiempo_anio = YEAR(c.COMPRA_FECHA)
-		and tiempo_mes = MONTH(compra_FECHA)) as tiempo,
+		and tiempo_mes = MONTH(compra_FECHA)) as tiempo_id,
 	clb.cliente_id as cliente,
 	c.COMPRA_SUCURSAL_ID ,
-	m.MODELO_CODIGO, 
+	c.COMPRA_FECHA ,
+	am.AUTO_ID ,
+	m.MODELO_CODIGO,
 	f.FABRICANTE_CODIGO,
 	am.auto_TIPO_CAJA_CODIGO,
 	am.auto_TIPO_CODIGO,
@@ -480,10 +507,9 @@ select
 	TIPO_TRANSMISION_CODIGO tipo_transmision,
 	TIPO_MOTOR_CODIGO as tipo_motor,
 	1 as cantidad_cambios,
-	isnull(count(ica.ITEM_COMPRA_AUTO_NRO),0) unidades_automov,
-	isnull(sum(ica.ITEM_COMPRA_AUTO_AUTOMOVIL_PRECIO),0) importe_automov,
-	isnull(count(ica2.ITEM_COMPRA_AUTOPARTE_NRO),0) unidades_automov,
-	isnull(sum(ica2.ITEM_COMPRA_AUTOPARTE_PRECIO),0) importe_automov
+	ica.ITEM_COMPRA_AUTO_AUTOMOVIL_PRECIO importe_automov,
+	count(ica2.ITEM_COMPRA_AUTOPARTE_NRO) unidades_autoparte,
+	sum(ica2.ITEM_COMPRA_AUTOPARTE_PRECIO) importe_autoparte
 from
 	FFAN.COMPRA c
 left join FFAN.ITEM_COMPRA_AUTOMOVIL ica on
@@ -526,20 +552,25 @@ join FFAN.BI_Potencia p on
 	(case
 		when m.modelo_potencia between 50 and 150 then '50-150cv'
 		when m.modelo_potencia between 151 and 300 then '151-300cv'
-		else '> 300cv'
+		else '>300cv'
 	end) )
-	group by year(c.compra_fecha),
+group by
+	year(c.compra_fecha),
 	month(c.compra_fecha),
 	clb.cliente_id,
 	c.COMPRA_SUCURSAL_ID ,
-	m.MODELO_CODIGO, 
+	c.COMPRA_FECHA ,
+	m.MODELO_CODIGO,
 	f.fabricante_codigo,
 	am.auto_TIPO_CAJA_CODIGO,
 	am.auto_tipo_codigo,
 	potencia_id,
 	tt.TIPO_TRANSMISION_CODIGO,
 	tm.TIPO_MOTOR_CODIGO,
-	ap.AUTOPARTE_CODIGO
+	ap.AUTOPARTE_CODIGO,
+	am.AUTO_ID,
+	ica.ITEM_COMPRA_AUTO_NRO,
+	ica.ITEM_COMPRA_AUTO_AUTOMOVIL_PRECIO
 GO
 
 -------
@@ -547,28 +578,72 @@ GO
 -------
 -- Precio promedio de automóviles, vendidos y comprados
 
-IF OBJECT_ID('V_Precio_Promedio_Automoviles', 'V') IS NOT NULL DROP VIEW[V_Precio_Promedio_Automoviles];
+IF OBJECT_ID('FFAN.V_Precio_Promedio_Automoviles', 'V') IS NOT NULL DROP VIEW [FFAN].[V_Precio_Promedio_Automoviles];
 go
-CREATE VIEW V_Precio_Promedio_Automoviles
-AS 
-select 
-tipoautomovil_id tipo_automovil,
-(select  sum(compras_importe_automov)/sum(compras_unidades_automov) from FFAN.BI_Hechos_Compras where compras_idtipoautomovil = tipoautomovil_id) prom_precio_compra,
-(select  sum(ventas_importe_automov)/sum(ventas_unidades_automov) from FFAN.BI_Hechos_Ventas where ventas_idtipoautomovil = tipoautomovil_id) prom_precio_venta
-from FFAN.BI_TipoAutomovil
+
+CREATE VIEW FFAN.V_Precio_Promedio_Automoviles AS
+select
+	tipoautomovil_id tipo_automovil,
+	(
+	select
+		sum(compras_importe_automov)/ count(compras_importe_automov)
+	from
+		FFAN.BI_Hechos_Compras
+	where
+		compras_idtipoautomovil = tipoautomovil_id) prom_precio_compra,
+	(
+	select
+		sum(ventas_importe_automov)/ count(ventas_importe_automov)
+	from
+		FFAN.BI_Hechos_Ventas
+	where
+		ventas_idtipoautomovil = tipoautomovil_id) prom_precio_venta
+from
+	FFAN.BI_TipoAutomovil
 GO
 
-IF OBJECT_ID('V_Cantidad_Automoviles_Sucursal_Mes', 'V') IS NOT NULL DROP VIEW [V_Cantidad_Automoviles_Sucursal_Mes];
+
+IF OBJECT_ID('FFAN.V_Cantidad_Compras_Automoviles_Sucursal_Mes', 'V') IS NOT NULL DROP VIEW [FFAN].[V_Cantidad_Compras_Automoviles_Sucursal_Mes];
 go
-CREATE VIEW V_Cantidad_Automoviles_Sucursal_Mes
+CREATE VIEW FFAN.V_Cantidad_Automoviles_Sucursal_Mes
 AS
-select T.tiempo_mes, tiempo_anio, S.sucursal_id, 
-isnull((select sum(ventas_unidades_automov) 
-from FFAN.BI_Hechos_Ventas where ventas_idsucursal = S.sucursal_id and ventas_idtiempo = T.tiempo_id),0) as Cantidad_Ventas,
-isnull((select sum(compras_unidades_automov) 
-from FFAN.BI_Hechos_Compras where compras_idsucursal = S.sucursal_id and compras_idtiempo = T.tiempo_id),0) as Cantidad_Compras
-from FFAN.BI_Tiempo T, FFAN.BI_Sucursal S 
+select
+	T.tiempo_mes,
+	tiempo_anio,
+	S.sucursal_id,
+	isnull((
+	select
+		count(*)
+	from
+		FFAN.BI_Hechos_Ventas
+	where
+		ventas_idsucursal = S.sucursal_id
+		and ventas_idtiempo = T.tiempo_id), 0) as Cantidad_Ventas,
+	isnull((
+	select
+		count(*), 0)
+from
+	FFAN.BI_Hechos_Compras
+where
+	compras_idsucursal = S.sucursal_id
+	and compras_idtiempo = T.tiempo_id),
+	0) as Cantidad_Compras
+from
+	FFAN.BI_Tiempo T,
+	FFAN.BI_Sucursal S
 go
+
+
+IF OBJECT_ID('FFAN.V_Cantidad_Ventas_Automoviles_Sucursal_Mes', 'V') IS NOT NULL DROP VIEW [FFAN].[V_Cantidad_Ventas_Automoviles_Sucursal_Mes];
+go
+CREATE VIEW FFAN.V_Cantidad_Ventas_Automoviles_Sucursal_Mes
+AS
+select ventas_idsucursal as SUCURSAL ,ventas_idtiempo TIEMPO , count(*) AS CANTIDAD_COMPRA
+from FFAN.BI_Hechos_Ventas
+group by ventas_idtiempo, ventas_idsucursal
+go
+
+
 
 /*
 
@@ -586,3 +661,45 @@ o Máxima cantidad de stock por cada sucursal (anual) ALEXIS
 
 */
 
+
+	
+
+
+/* los autos se compran en una sucursal y se pueden vender en otra. Pero el stock está relacionado con el tiempo que una sucursal tuvo el auto hasta que lo vendio
+ * no me importa si se vendio en otra sucursal, el tiempo y stock queda registrado en quien compró el auto*/
+IF OBJECT_ID('FFAN.DETALLE_STOCK_AUTO_MODELO_VW', 'V') IS NOT NULL DROP VIEW [FFAN].[DETALLE_STOCK_AUTO_MODELO_VW];
+go	
+create view FFAN.DETALLE_STOCK_AUTO_MODELO_VW AS
+select
+	bhc.compra_auto_id,
+	bhc.compras_idmodelo,
+	bhc.compra_fecha,
+	bhv.ventas_fecha_venta,
+	case 
+	when bhv.ventas_fecha_venta is null then datediff(day,bhc.compra_fecha, getdate() )
+	ELSE 
+	datediff(day,bhc.compra_fecha, bhv.ventas_fecha_venta) 
+	end as dias_stock
+from
+	ffan.BI_Hechos_Compras bhc
+left join ffan.BI_Hechos_Ventas bhv on
+	bhc.compra_auto_id = bhv.venta_auto_id
+where bhc.compra_auto_id is not null
+GO 
+
+IF OBJECT_ID('FFAN.PROMEDIO_STOCK_DIAS_MODELO_AUTOMOVIL', 'V') IS NOT NULL DROP VIEW [FFAN].[PROMEDIO_STOCK_DIAS_MODELO_AUTOMOVIL]
+go		
+create view FFAN.PROMEDIO_STOCK_DIAS_MODELO_AUTOMOVIL AS
+SELECT
+	dsamv.compras_idmodelo,
+	AVG(dsamv.dias_stock) AS DIAS_PROMEDIO_STOCK
+FROM
+	FFAN.DETALLE_STOCK_AUTO_MODELO_VW dsamv
+GROUP BY
+	dsamv.compras_idmodelo
+GO 
+
+
+
+
+	
