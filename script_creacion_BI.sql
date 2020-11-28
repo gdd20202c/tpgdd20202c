@@ -603,34 +603,19 @@ from
 GO
 
 
-IF OBJECT_ID('FFAN.V_Cantidad_Compras_Automoviles_Sucursal_Mes', 'V') IS NOT NULL DROP VIEW [FFAN].[V_Cantidad_Compras_Automoviles_Sucursal_Mes];
+IF OBJECT_ID('FFAN.V_Cantidad_Automoviles_Sucursal_Mes', 'V') IS NOT NULL DROP VIEW [FFAN].[V_Cantidad_Automoviles_Sucursal_Mes];
 go
-CREATE VIEW FFAN.V_Cantidad_Automoviles_Sucursal_Mes
+CREATE VIEW V_Cantidad_Automoviles_Sucursal_Mes
 AS
-select
-	T.tiempo_mes,
-	tiempo_anio,
-	S.sucursal_id,
-	isnull((
-	select
-		count(*)
-	from
-		FFAN.BI_Hechos_Ventas
-	where
-		ventas_idsucursal = S.sucursal_id
-		and ventas_idtiempo = T.tiempo_id), 0) as Cantidad_Ventas,
-	isnull((
-	select
-		count(*), 0)
-from
-	FFAN.BI_Hechos_Compras
-where
-	compras_idsucursal = S.sucursal_id
-	and compras_idtiempo = T.tiempo_id),
-	0) as Cantidad_Compras
-from
-	FFAN.BI_Tiempo T,
-	FFAN.BI_Sucursal S
+select compras_idsucursal as SUCURSAL_COMPRA ,compras_idtiempo TIEMPO_COMPRA , sum(compras_unidades_automov) AS CANTIDAD_COMPRA 
+from FFAN.BI_Hechos_Compras
+group by compras_idtiempo, compras_idsucursal
+select T.tiempo_mes, tiempo_anio, S.sucursal_id, 
+isnull((select sum(ventas_unidades_automov) 
+from FFAN.BI_Hechos_Ventas where ventas_idsucursal = S.sucursal_id and ventas_idtiempo = T.tiempo_id),0) as Cantidad_Ventas,
+isnull((select sum(compras_unidades_automov) 
+from FFAN.BI_Hechos_Compras where compras_idsucursal = S.sucursal_id and compras_idtiempo = T.tiempo_id),0) as Cantidad_Compras
+from FFAN.BI_Tiempo T, FFAN.BI_Sucursal S 
 go
 
 
