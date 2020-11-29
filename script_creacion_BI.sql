@@ -164,6 +164,7 @@ CREATE TABLE [FFAN].[BI_Hechos_Compras] (
 		compras_idtipotransmision DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoTransmision(tipotransmision_id),
 		compras_idtipomotor DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoMotor(tipomotor_id),
 		compras_idCANTIDAD_CAMBIOS DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_CantidadCambios(CANTIDADCAMBIOS_id),
+		compras_unidades_automov decimal (18,0),
 		compras_importe_automov decimal(18,2),
 		compras_unidades_autopart decimal(18,0),
 		compras_importe_autopart decimal(18,2)
@@ -187,6 +188,7 @@ GO
 		ventas_idtipotransmision DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoTransmision(tipotransmision_id),
 		ventas_idtipomotor DECIMAL(18, 0) FOREIGN KEY REFERENCES FFAN.BI_TipoMotor(tipomotor_id),
 		ventas_idCANTIDAD_CAMBIOS DECIMAL(2, 0) FOREIGN KEY REFERENCES FFAN.BI_CantidadCambios(CANTIDADCAMBIOS_id),
+		ventas_unidades_automov decimal(18,0),
 		ventas_importe_automov decimal(18,2),
 		ventas_unidades_autopart decimal(18,0),
 		ventas_importe_autopart decimal(18,2)
@@ -418,6 +420,7 @@ select
 	TIPO_TRANSMISION_CODIGO tipo_transmision,
 	TIPO_MOTOR_CODIGO as tipo_motor,
 	1 as cantidad_cambios,
+	count(item_factura_automovil_nro) as unidades_automovil,
 	sum(item_factura_automovil_precio) importe_automovil,
 	count(ITEM_FACTURA_AUTOPARTE_NRO) unidades_autoparte,
 	sum(ITEM_FACTURA_AUTOPARTE_PRECIO) importe_autoparte
@@ -507,6 +510,7 @@ select
 	TIPO_TRANSMISION_CODIGO tipo_transmision,
 	TIPO_MOTOR_CODIGO as tipo_motor,
 	1 as cantidad_cambios,
+	count(ica.item_compra_auto_nro) as unidades_automovil,
 	ica.ITEM_COMPRA_AUTO_AUTOMOVIL_PRECIO importe_automov,
 	count(ica2.ITEM_COMPRA_AUTOPARTE_NRO) unidades_autoparte,
 	sum(ica2.ITEM_COMPRA_AUTOPARTE_PRECIO) importe_autoparte
