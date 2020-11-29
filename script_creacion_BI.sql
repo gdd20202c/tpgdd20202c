@@ -686,8 +686,20 @@ GO
 
 
 -- Ganancias (precio de venta – precio de compra) x Sucursal x mes FACU
+IF OBJECT_ID('FFAN.V_AUTOPARTE_GANANCIA_SUC_MES', 'V') IS NOT NULL DROP VIEW [FFAN].[V_AUTOPARTE_GANANCIA_SUC_MES];
+go
+CREATE VIEW FFAN.V_AUTOPARTE_GANANCIA_SUC_MES
+AS
+select 
+s.sucursal_id,
+t.tiempo_anio anio,
+t.tiempo_mes mes,
+(isnull((select  sum(ventas_importe_autopart) from FFAN.BI_Hechos_Ventas where ventas_idtiempo = t.tiempo_id and ventas_idsucursal=s.sucursal_id),0) -
+isnull((select  sum(compras_importe_autopart) from FFAN.BI_Hechos_Compras where compras_idtiempo = t.tiempo_id and compras_idsucursal=s.sucursal_id),0))  as ganancias
+from FFAN.BI_Sucursal s, FFAN.BI_Tiempo t
+GO
 
---FALTA COMPLETAR 
+
 
 -- Máxima cantidad de stock por cada sucursal (anual) ALEXIS
  -- FALTA COMPLETAR
