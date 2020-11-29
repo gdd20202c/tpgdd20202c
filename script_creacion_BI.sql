@@ -631,7 +631,20 @@ GO
 
 /*o Ganancias (precio de venta – precio de compra) x Sucursal x mes FEDE */
 
----- FALTA COMPLETAR
+IF OBJECT_ID('FFAN.V_AUTOMOVIL_GANANCIA_SUC_MES', 'V') IS NOT NULL DROP VIEW FFAN.V_AUTOMOVIL_GANANCIA_SUC_MES;
+go
+CREATE VIEW FFAN.V_AUTOMOVIL_GANANCIA_SUC_MES
+AS
+select 
+s.sucursal_id, t.tiempo_anio as año, t.tiempo_mes as mes,
+(isnull((select  sum(hv.ventas_importe_automov) 
+         from FFAN.BI_Hechos_Ventas hv 
+		 where hv.ventas_idtiempo = t.tiempo_id and hv.ventas_idsucursal=s.sucursal_id),0) -
+isnull((select  sum(hc.compras_importe_automov) 
+        from FFAN.BI_Hechos_Compras hc 
+		where hc.compras_idtiempo = t.tiempo_id and hc.compras_idsucursal=s.sucursal_id),0))  as ganancias
+from FFAN.BI_Sucursal s, FFAN.BI_Tiempo t
+GO
 
 /*  Promedio de tiempo en stock de cada modelo de automóvil. ALEXIS */
 
