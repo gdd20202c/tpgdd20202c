@@ -606,45 +606,32 @@ from
 	FFAN.BI_TipoAutomovil
 GO
 
+GO
+IF OBJECT_ID('V_CANTIDAD_AUTOMOVILES_SUCURSAL_MES', 'V') IS NOT NULL DROP VIEW [FFAN].[V_CANTIDAD_AUTOMOVILES_SUCURSAL_MES];
+GO
 
-IF OBJECT_ID('FFAN.V_Cantidad_Automoviles_Sucursal_Mes', 'V') IS NOT NULL DROP VIEW [FFAN].[V_Cantidad_Automoviles_Sucursal_Mes];
-go
-CREATE VIEW V_Cantidad_Automoviles_Sucursal_Mes
+CREATE VIEW FFAN.V_CANTIDAD_AUTOMOVILES_SUCURSAL_MES
 AS
-select compras_idsucursal as SUCURSAL_COMPRA ,compras_idtiempo TIEMPO_COMPRA , sum(compras_unidades_automov) AS CANTIDAD_COMPRA 
-from FFAN.BI_Hechos_Compras
-group by compras_idtiempo, compras_idsucursal
-select T.tiempo_mes, tiempo_anio, S.sucursal_id, 
-isnull((select sum(ventas_unidades_automov) 
-from FFAN.BI_Hechos_Ventas where ventas_idsucursal = S.sucursal_id and ventas_idtiempo = T.tiempo_id),0) as Cantidad_Ventas,
-isnull((select sum(compras_unidades_automov) 
-from FFAN.BI_Hechos_Compras where compras_idsucursal = S.sucursal_id and compras_idtiempo = T.tiempo_id),0) as Cantidad_Compras
-from FFAN.BI_Tiempo T, FFAN.BI_Sucursal S 
-go
+SELECT T.TIEMPO_ID AS TIEMPO_COMPRA, S.SUCURSAL_ID  AS SUCURSAL_COMPRA, 
+ISNULL((SELECT SUM(VENTAS_UNIDADES_AUTOMOV) 
+FROM FFAN.BI_HECHOS_VENTAS WHERE VENTAS_IDSUCURSAL = S.SUCURSAL_ID AND VENTAS_IDTIEMPO = T.TIEMPO_ID),0) AS VENTAS,
+ISNULL((SELECT SUM(COMPRAS_UNIDADES_AUTOMOV) 
+FROM FFAN.BI_HECHOS_COMPRAS WHERE COMPRAS_IDSUCURSAL = S.SUCURSAL_ID AND COMPRAS_IDTIEMPO = T.TIEMPO_ID),0)AS COMPRAS
+FROM FFAN.BI_TIEMPO T, FFAN.BI_SUCURSAL S
+GO
 
-
-IF OBJECT_ID('FFAN.V_Cantidad_Ventas_Automoviles_Sucursal_Mes', 'V') IS NOT NULL DROP VIEW [FFAN].[V_Cantidad_Ventas_Automoviles_Sucursal_Mes];
-go
-CREATE VIEW FFAN.V_Cantidad_Ventas_Automoviles_Sucursal_Mes
+IF OBJECT_ID('V_PRECIO_PROMEDIO_AUTOPARTE', 'V') IS NOT NULL DROP VIEW [V_PRECIO_PROMEDIO_AUTOPARTE];
+GO
+CREATE VIEW V_PRECIO_PROMEDIO_AUTOPARTE
 AS
-select ventas_idsucursal as SUCURSAL ,ventas_idtiempo TIEMPO , count(*) AS CANTIDAD_COMPRA
-from FFAN.BI_Hechos_Ventas
-group by ventas_idtiempo, ventas_idsucursal
-go
-
-
-IF OBJECT_ID('V_Precio_Promedio_Autoparte', 'V') IS NOT NULL DROP VIEW [V_Precio_Promedio_Autoparte];
-go
-CREATE VIEW V_Precio_Promedio_Autoparte
-AS
-select A.AUTOPARTE_CODIGO AS CODIGO_AUTOPARTE,
-isnull((select sum(ventas_importe_autopart)/sum(ventas_unidades_autopart) 
-from FFAN.BI_Hechos_Ventas where ventas_idautoparte = A.AUTOPARTE_CODIGO),0) as PRECIO_PROMEDIO_VENTA,
-isnull((select sum(compras_importe_autopart)/sum(compras_unidades_autopart) 
-from FFAN.BI_Hechos_Compras where compras_idautoparte = A.AUTOPARTE_CODIGO),0) as PRECIO_PROMEDIO_COMPRA
-from FFAN.BI_Autoparte A
+SELECT A.AUTOPARTE_CODIGO AS CODIGO_AUTOPARTE,
+ISNULL((SELECT SUM(VENTAS_IMPORTE_AUTOPART)/SUM(VENTAS_UNIDADES_AUTOPART) 
+FROM FFAN.BI_HECHOS_VENTAS WHERE VENTAS_IDAUTOPARTE = A.AUTOPARTE_CODIGO),0) AS PRECIO_PROMEDIO_VENTA,
+ISNULL((SELECT SUM(COMPRAS_IMPORTE_AUTOPART)/SUM(COMPRAS_UNIDADES_AUTOPART) 
+FROM FFAN.BI_HECHOS_COMPRAS WHERE COMPRAS_IDAUTOPARTE = A.AUTOPARTE_CODIGO),0) AS PRECIO_PROMEDIO_COMPRA
+FROM FFAN.BI_AUTOPARTE A
 GROUP BY A.AUTOPARTE_CODIGO
-go
+GO
 
 /*
 
