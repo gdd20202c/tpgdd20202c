@@ -421,9 +421,9 @@ select
 	TIPO_MOTOR_CODIGO as tipo_motor,
 	1 as cantidad_cambios,
 	count(item_factura_automovil_nro) as unidades_automovil,
-	sum(item_factura_automovil_precio) importe_automovil,
-	count(ITEM_FACTURA_AUTOPARTE_NRO) unidades_autoparte,
-	sum(ITEM_FACTURA_AUTOPARTE_PRECIO) importe_autoparte
+	isnull(sum(item_factura_automovil_precio),0) importe_automovil,
+	isnull(sum(ITEM_FACTURA_AUTOPARTE_cant),0) unidades_autoparte,
+	isnull(sum(ITEM_FACTURA_AUTOPARTE_PRECIO),0) importe_autoparte
 from
 	FFAN.FACTURA
 left join FFAN.ITEM_FACTURA_AUTOMOVIL on
@@ -497,7 +497,7 @@ select
 		tiempo_anio = YEAR(c.COMPRA_FECHA)
 		and tiempo_mes = MONTH(compra_FECHA)) as tiempo_id,
 	clb.cliente_id as cliente,
-	c.COMPRA_SUCURSAL_ID ,
+	c.COMPRA_SUCURSAL_ID,
 	c.COMPRA_FECHA ,
 	am.AUTO_ID ,
 	m.MODELO_CODIGO,
@@ -511,9 +511,9 @@ select
 	TIPO_MOTOR_CODIGO as tipo_motor,
 	1 as cantidad_cambios,
 	count(ica.item_compra_auto_nro) as unidades_automovil,
-	ica.ITEM_COMPRA_AUTO_AUTOMOVIL_PRECIO importe_automov,
-	count(ica2.ITEM_COMPRA_AUTOPARTE_NRO) unidades_autoparte,
-	sum(ica2.ITEM_COMPRA_AUTOPARTE_PRECIO) importe_autoparte
+	isnull(sum(ica.ITEM_COMPRA_AUTO_AUTOMOVIL_PRECIO),0) importe_automov,
+	isnull(sum(ica2.ITEM_COMPRA_AUTOPARTE_CANT),0) unidades_autoparte,
+	isnull(sum(ica2.ITEM_COMPRA_AUTOPARTE_PRECIO),0) importe_autoparte
 from
 	FFAN.COMPRA c
 left join FFAN.ITEM_COMPRA_AUTOMOVIL ica on
@@ -556,7 +556,7 @@ join FFAN.BI_Potencia p on
 	(case
 		when m.modelo_potencia between 50 and 150 then '50-150cv'
 		when m.modelo_potencia between 151 and 300 then '151-300cv'
-		else '>300cv'
+		else '> 300cv'
 	end) )
 group by
 	year(c.compra_fecha),
@@ -572,9 +572,7 @@ group by
 	tt.TIPO_TRANSMISION_CODIGO,
 	tm.TIPO_MOTOR_CODIGO,
 	ap.AUTOPARTE_CODIGO,
-	am.AUTO_ID,
-	ica.ITEM_COMPRA_AUTO_NRO,
-	ica.ITEM_COMPRA_AUTO_AUTOMOVIL_PRECIO
+	am.AUTO_ID
 GO
 
 -------
@@ -582,6 +580,31 @@ GO
 -------
 -- Precio promedio de automóviles, vendidos y comprados
 
+
+
+
+
+
+
+
+/*
+
+Automóviles:
+o Cantidad de automóviles, vendidos y comprados x sucursal y mes  NACHO */
+IF OBJECT_ID('FFAN.V_CANTIDAD_AUTOMOVILES_SUCURSAL_MES', 'V') IS NOT NULL DROP VIEW [FFAN].[V_CANTIDAD_AUTOMOVILES_SUCURSAL_MES];
+GO
+
+CREATE VIEW FFAN.V_CANTIDAD_AUTOMOVILES_SUCURSAL_MES
+AS
+SELECT T.TIEMPO_ID AS TIEMPO_COMPRA, S.SUCURSAL_ID  AS SUCURSAL_COMPRA, 
+ISNULL((SELECT SUM(VENTAS_UNIDADES_AUTOMOV) 
+FROM FFAN.BI_HECHOS_VENTAS WHERE VENTAS_IDSUCURSAL = S.SUCURSAL_ID AND VENTAS_IDTIEMPO = T.TIEMPO_ID),0) AS VENTAS,
+ISNULL((SELECT SUM(COMPRAS_UNIDADES_AUTOMOV) 
+FROM FFAN.BI_HECHOS_COMPRAS WHERE COMPRAS_IDSUCURSAL = S.SUCURSAL_ID AND COMPRAS_IDTIEMPO = T.TIEMPO_ID),0)AS COMPRAS
+FROM FFAN.BI_TIEMPO T, FFAN.BI_SUCURSAL S
+GO
+
+/* o Precio promedio de automóviles, vendidos y comprados.  FACU */
 IF OBJECT_ID('FFAN.V_Precio_Promedio_Automoviles', 'V') IS NOT NULL DROP VIEW [FFAN].[V_Precio_Promedio_Automoviles];
 go
 
@@ -606,55 +629,25 @@ from
 	FFAN.BI_TipoAutomovil
 GO
 
-GO
-IF OBJECT_ID('V_CANTIDAD_AUTOMOVILES_SUCURSAL_MES', 'V') IS NOT NULL DROP VIEW [FFAN].[V_CANTIDAD_AUTOMOVILES_SUCURSAL_MES];
-GO
+/*o Ganancias (precio de venta – precio de compra) x Sucursal x mes FEDE */
 
-CREATE VIEW FFAN.V_CANTIDAD_AUTOMOVILES_SUCURSAL_MES
+IF OBJECT_ID('FFAN.V_AUTOMOVIL_GANANCIA_SUC_MES', 'V') IS NOT NULL DROP VIEW FFAN.V_AUTOMOVIL_GANANCIA_SUC_MES;
+go
+CREATE VIEW FFAN.V_AUTOMOVIL_GANANCIA_SUC_MES
 AS
-SELECT T.TIEMPO_ID AS TIEMPO_COMPRA, S.SUCURSAL_ID  AS SUCURSAL_COMPRA, 
-ISNULL((SELECT SUM(VENTAS_UNIDADES_AUTOMOV) 
-FROM FFAN.BI_HECHOS_VENTAS WHERE VENTAS_IDSUCURSAL = S.SUCURSAL_ID AND VENTAS_IDTIEMPO = T.TIEMPO_ID),0) AS VENTAS,
-ISNULL((SELECT SUM(COMPRAS_UNIDADES_AUTOMOV) 
-FROM FFAN.BI_HECHOS_COMPRAS WHERE COMPRAS_IDSUCURSAL = S.SUCURSAL_ID AND COMPRAS_IDTIEMPO = T.TIEMPO_ID),0)AS COMPRAS
-FROM FFAN.BI_TIEMPO T, FFAN.BI_SUCURSAL S
+select 
+s.sucursal_id, t.tiempo_anio as año, t.tiempo_mes as mes,
+(isnull((select  sum(hv.ventas_importe_automov) 
+         from FFAN.BI_Hechos_Ventas hv 
+		 where hv.ventas_idtiempo = t.tiempo_id and hv.ventas_idsucursal=s.sucursal_id),0) -
+isnull((select  sum(hc.compras_importe_automov) 
+        from FFAN.BI_Hechos_Compras hc 
+		where hc.compras_idtiempo = t.tiempo_id and hc.compras_idsucursal=s.sucursal_id),0))  as ganancias
+from FFAN.BI_Sucursal s, FFAN.BI_Tiempo t
 GO
 
-IF OBJECT_ID('V_PRECIO_PROMEDIO_AUTOPARTE', 'V') IS NOT NULL DROP VIEW [V_PRECIO_PROMEDIO_AUTOPARTE];
-GO
-CREATE VIEW V_PRECIO_PROMEDIO_AUTOPARTE
-AS
-SELECT A.AUTOPARTE_CODIGO AS CODIGO_AUTOPARTE,
-ISNULL((SELECT SUM(VENTAS_IMPORTE_AUTOPART)/SUM(VENTAS_UNIDADES_AUTOPART) 
-FROM FFAN.BI_HECHOS_VENTAS WHERE VENTAS_IDAUTOPARTE = A.AUTOPARTE_CODIGO),0) AS PRECIO_PROMEDIO_VENTA,
-ISNULL((SELECT SUM(COMPRAS_IMPORTE_AUTOPART)/SUM(COMPRAS_UNIDADES_AUTOPART) 
-FROM FFAN.BI_HECHOS_COMPRAS WHERE COMPRAS_IDAUTOPARTE = A.AUTOPARTE_CODIGO),0) AS PRECIO_PROMEDIO_COMPRA
-FROM FFAN.BI_AUTOPARTE A
-GROUP BY A.AUTOPARTE_CODIGO
-GO
+/*  Promedio de tiempo en stock de cada modelo de automóvil. ALEXIS */
 
-/*
-
-Automóviles:
-o Cantidad de automóviles, vendidos y comprados x sucursal y mes  NACHO
-o Precio promedio de automóviles, vendidos y comprados.  FACU
-o Ganancias (precio de venta – precio de compra) x Sucursal x mes FEDE
-o Promedio de tiempo en stock de cada modelo de automóvil. ALEXIS
-o 
-Autopartes (Preguntar si autoparte es una dimensión y hay que llegar al detalle. En base a esto cambiamos las tablas de hechos agregando autoparte_id agrupado)
-o Precio promedio de cada autoparte, vendida y comprada. NACHO
-o Ganancias (precio de venta – precio de compra) x Sucursal x mes FACU
-o Promedio de tiempo en stock de cada autoparte. FEDE
-o Máxima cantidad de stock por cada sucursal (anual) ALEXIS
-
-*/
-
-
-	
-
-
-/* los autos se compran en una sucursal y se pueden vender en otra. Pero el stock está relacionado con el tiempo que una sucursal tuvo el auto hasta que lo vendio
- * no me importa si se vendio en otra sucursal, el tiempo y stock queda registrado en quien compró el auto*/
 IF OBJECT_ID('FFAN.DETALLE_STOCK_AUTO_MODELO_VW', 'V') IS NOT NULL DROP VIEW [FFAN].[DETALLE_STOCK_AUTO_MODELO_VW];
 go	
 create view FFAN.DETALLE_STOCK_AUTO_MODELO_VW AS
@@ -843,6 +836,53 @@ GO
 
 SELECT * FROM FFAN.STOCK_MAXIMO_AUTOPARTE_ANIO_SUCURSAL
 ORDER BY STOCKMAXIMO DESC
+
+
+
+/* Precio promedio de cada autoparte, vendida y comprada. NACHO */
+
+IF OBJECT_ID('FFAN.V_PRECIO_PROMEDIO_AUTOPARTE', 'V') IS NOT NULL DROP VIEW [FFAN].[V_PRECIO_PROMEDIO_AUTOPARTE];
+GO
+CREATE VIEW FFAN.V_PRECIO_PROMEDIO_AUTOPARTE
+AS
+SELECT A.AUTOPARTE_CODIGO AS CODIGO_AUTOPARTE,
+ISNULL((SELECT SUM(VENTAS_IMPORTE_AUTOPART)/SUM(VENTAS_UNIDADES_AUTOPART) 
+FROM FFAN.BI_HECHOS_VENTAS WHERE VENTAS_IDAUTOPARTE = A.AUTOPARTE_CODIGO),0) AS PRECIO_PROMEDIO_VENTA,
+ISNULL((SELECT SUM(COMPRAS_IMPORTE_AUTOPART)/SUM(COMPRAS_UNIDADES_AUTOPART) 
+FROM FFAN.BI_HECHOS_COMPRAS WHERE COMPRAS_IDAUTOPARTE = A.AUTOPARTE_CODIGO),0) AS PRECIO_PROMEDIO_COMPRA
+FROM FFAN.BI_AUTOPARTE A
+GROUP BY A.AUTOPARTE_CODIGO
+GO
+
+
+-- Ganancias (precio de venta – precio de compra) x Sucursal x mes FACU
+IF OBJECT_ID('FFAN.V_AUTOPARTE_GANANCIA_SUC_MES', 'V') IS NOT NULL DROP VIEW [FFAN].[V_AUTOPARTE_GANANCIA_SUC_MES];
+go
+CREATE VIEW FFAN.V_AUTOPARTE_GANANCIA_SUC_MES
+AS
+select 
+s.sucursal_id,
+t.tiempo_anio anio,
+t.tiempo_mes mes,
+(isnull((select  sum(ventas_importe_autopart) from FFAN.BI_Hechos_Ventas where ventas_idtiempo = t.tiempo_id and ventas_idsucursal=s.sucursal_id),0) -
+isnull((select  sum(compras_importe_autopart) from FFAN.BI_Hechos_Compras where compras_idtiempo = t.tiempo_id and compras_idsucursal=s.sucursal_id),0))  as ganancias
+from FFAN.BI_Sucursal s, FFAN.BI_Tiempo t
+GO
+
+
+
+-- Máxima cantidad de stock por cada sucursal (anual) ALEXIS
+ -- FALTA COMPLETAR
+
+
+
+
+	
+
+
+/* los autos se compran en una sucursal y se pueden vender en otra. Pero el stock está relacionado con el tiempo que una sucursal tuvo el auto hasta que lo vendio
+ * no me importa si se vendio en otra sucursal, el tiempo y stock queda registrado en quien compró el auto*/
+
 
 
 
