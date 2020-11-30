@@ -885,6 +885,163 @@ GO
 
 
 
+if OBJECT_ID('FFAN.CalculaStockMaximoAutoparte','P') is not null
+DROP PROCEDURE [FFAN].CalculaStockMaximoAutoparte
+GO
+
+CREATE PROCEDURE FFAN.CalculaStockMaximoAutoparte 
+as
+begin
+
+if OBJECT_ID('FFAN.TABLATEMPORAL','U') is not null
+DROP TABLE FFAN.TABLATEMPORAL
+
+create table FFAN.TABLATEMPORAL (
+	idSucursal decimal(18,0),
+	id_autoparte decimal(18, 0),
+	fecha datetime,
+	unidad decimal(18,0),
+	operacion varchar(1),
+	acumuladoStock decimal(18,0),
+)
+
+insert into FFAN.TABLATEMPORAL 
+select
+	bhc.compras_idsucursal as Sucursal,
+	bhc.compras_idautoparte as Autoparte,
+	bhc.compra_fecha as Fecha,
+	bhc.compras_unidades_autopart as Unidades,
+	'C' as Operacion,
+	0 as Acumulado
+	from FFAN.BI_Hechos_Compras bhc
+where
+	bhc.compra_auto_id is null
+union
+select
+	bhv.ventas_idsucursal as Sucursal,
+	bhv.ventas_idautoparte as Autoparte,
+	bhv.ventas_fecha_venta as Fecha,
+	bhv.ventas_unidades_autopart,
+	'V' as Operacion,
+	0
+	from FFAN.BI_Hechos_Ventas bhv
+where
+	bhv.venta_auto_id is null
+
+
+
+if OBJECT_ID('FFAN.StockAutoparte','U') is not null
+DROP TABLE FFAN.StockAutoparte
+
+create table FFAN.StockAutoparte(
+	idSucursal decimal(18,0),
+	id_autoparte decimal(18, 0),
+	anio int,
+	stockMaximo int
+)
+
+Declare 
+@id_sucursal decimal(18, 0),
+@id_autoparte decimal(18, 0),
+@fecha datetime,
+@unidad int,
+@operacion varchar(2),
+@acumuladoStock int
+
+declare stock_maximo_autoparte_sucursal_fecha cursor 
+for select *
+from
+FFAN.TABLATEMPORAL
+order by
+1,2,3
+
+
+declare @id_sucursal_ant decimal(18,0)
+declare @id_autoparte_ant decimal(18,0)
+declare @anio_ant int
+declare @stockTemporal int
+declare @maximo int
+
+open stock_maximo_autoparte_sucursal_fecha 
+fetch stock_maximo_autoparte_sucursal_fecha
+into
+	@id_sucursal,
+	@id_autoparte,
+	@fecha,
+	@unidad,
+	@operacion,
+	@acumuladoStock
+
+set @id_sucursal_ant  =	@id_sucursal
+set @id_autoparte_ant =	@id_autoparte
+set @anio_ant = year(@fecha)
+set @stockTemporal = 0
+set @maximo = 0
+
+while @@fetch_status = 0
+begin 
+	
+	while (@id_sucursal = @id_sucursal_ant and @id_autoparte_ant = @id_autoparte and @anio_ant = year(@fecha)) and @@fetch_status = 0
+	begin
+		
+		if @operacion = 'C'
+		begin
+			set @stockTemporal = @stockTemporal + @unidad
+		end
+		else
+		begin
+			set @stockTemporal = @stockTemporal - @unidad
+		end
+		if @maximo < @stockTemporal
+		begin
+			set @maximo = @stockTemporal
+		end
+		
+
+		fetch stock_maximo_autoparte_sucursal_fecha
+		into
+		@id_sucursal,
+		@id_autoparte,
+		@fecha,
+		@unidad,
+		@operacion,
+		@acumuladoStock
+	end
+		insert into FFAN.StockAutoparte values (@id_sucursal_ant,@id_autoparte_ant,@anio_ant,@maximo)
+		set @id_sucursal_ant  =	@id_sucursal
+		set @id_autoparte_ant =	@id_autoparte
+		set @anio_ant = year(@fecha)
+		set @stockTemporal = 0
+		set @maximo = 0
+end
+
+CLOSE stock_maximo_autoparte_sucursal_fecha
+DEALLOCATE stock_maximo_autoparte_sucursal_fecha 
+end
+
+go
+
+exec FFAN.CalculaStockMaximoAutoparte
+
+
+if OBJECT_ID('FFAN.STOCK_MAXIMO_AUTOPARTE_ANIO_SUCURSAL','V') is not null
+DROP VIEW FFAN.STOCK_MAXIMO_AUTOPARTE_ANIO_SUCURSAL
+GO
+
+CREATE VIEW FFAN.STOCK_MAXIMO_AUTOPARTE_ANIO_SUCURSAL
+AS
+select idSucursal,id_autoparte,anio,stockMaximo from FFAN.StockAutoparte
+group by
+idSucursal,
+id_autoparte,
+anio,
+stockMaximo
+GO
+
+SELECT * FROM FFAN.STOCK_MAXIMO_AUTOPARTE_ANIO_SUCURSAL
+ORDER BY STOCKMAXIMO DESC
+
+
 
 
 	
